@@ -1,0 +1,108 @@
+version: '3.9'
+
+services:
+  # ================================
+  # Base de Datos PostgreSQL
+  # ================================
+  db:
+    image: postgres:16-alpine
+    container_name: torneo_db
+    environment:
+      POSTGRES_DB: torneo_deportivo
+      POSTGRES_USER: torneo_user
+      POSTGRES_PASSWORD: torneo_pass_2025
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U torneo_user -d torneo_deportivo"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - torneo_net
+
+  # ================================
+  # Redis (cache de brackets)
+  # ================================
+  redis:
+    image: redis:7-alpine
+    container_name: torneo_redis
+    ports:
+      - "6379:6379"
+    networks:
+      - torneo_net
+
+  # ================================
+  # MinIO (storage de imágenes / flyers)
+  # ================================
+  minio:
+    image: minio/minio:latest
+    container_name: torneo_minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minio_admin
+      MINIO_ROOT_PASSWORD: minio_pass_2025
+    ports:
+      - "9000:9000"   # API S3
+      - "9001:9001"   # Consola web
+    volumes:
+      - minio_data:/data
+    networks:
+      - torneo_net
+
+  # ================================
+  # Backend .NET 10 API (FastEndpoints)
+  # ================================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: torneo_backend
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=db;Database=torneo_deportivo;Username=torneo_user;Password=torneo_pass_2025
+      - ConnectionStrings__Redis=redis:6379
+      - Minio__Endpoint=minio:9000
+      - Minio__AccessKey=minio_admin
+      - Minio__SecretKey=minio_pass_2025
+      - Jwt__Secret=TorneoDeportivo_SuperSecret_Key_2025_Argentina
+      - Jwt__Issuer=TorneoDeportivo.API
+      - Jwt__Audience=TorneoDeportivo.Frontend
+    ports:
+      - "5000:5000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      minio:
+        condition: service_started
+    networks:
+      - torneo_net
+
+  # ================================
+  # Frontend React + Vite
+  # ================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: torneo_frontend
+    environment:
+      - VITE_API_URL=http://localhost:5000
+    ports:
+      - "5173:5173"   # Vite dev server
+    depends_on:
+      - backend
+    networks:
+      - torneo_net
+
+volumes:
+  postgres_data:
+  minio_data:
+
+networks:
+  torneo_net:
+    driver: bridge
