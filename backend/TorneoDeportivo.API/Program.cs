@@ -3,6 +3,7 @@ using FastEndpoints;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using TorneoDeportivo.API.Hubs;
+using TorneoDeportivo.API.Middleware;
 using TorneoDeportivo.Application;
 using TorneoDeportivo.Infrastructure;
 
@@ -42,6 +43,7 @@ builder.Services.AddCors(options => options.AddDefaultPolicy(policy => policy
 var app = builder.Build();
 
 app.UseCors();
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseAuthentication().UseAuthorization();
 app.UseFastEndpoints();
 app.MapHub<BracketHub>("/hubs/bracket");

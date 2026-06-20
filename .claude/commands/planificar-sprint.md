@@ -51,3 +51,37 @@ Para `/planificar-sprint {N}`, generar:
 4. Dependencias entre tareas
 5. Definición de Done (DoD) para el sprint
 6. Riesgos específicos de este sprint
+
+Antes de escribir el plan, revisar el estado real del repo (qué historias/endpoints/
+componentes ya existen) en vez de asumir que todo arranca de cero — el plan debe
+reflejar lo que falta de verdad, no repetir lo que ya está hecho.
+
+## Persistencia del Plan (obligatorio)
+
+Este plan es un documento vivo: se vuelve a generar y actualizar cada vez que se
+ejecuta el comando para el mismo sprint, no se descarta después de mostrarlo en el chat.
+
+Pasos, en este orden, en cada ejecución de `/planificar-sprint {N}`:
+
+1. Escribir (o sobrescribir) el contenido completo del plan en
+   `docs/sprints/sprint-{N}.md`, usando exclusivamente este subconjunto de Markdown
+   (es lo que el conversor de abajo sabe interpretar):
+   - `# `, `## `, `### ` para títulos/secciones/subsecciones
+   - `- ` para bullets (con o sin `[ ]`/`[x]` de checklist)
+   - `1. ` para items numerados
+   - tablas con `| col | col |` + fila separadora `|---|---|`
+   - texto entre `**` para negrita
+   - bloques ```` ``` ```` para diagramas/texto monoespaciado (ej. el árbol de dependencias)
+   - `> ` para notas/citas
+   - `---` (sola en una línea) para una línea horizontal
+2. Generar/actualizar el PDF a partir de ese markdown corriendo, desde la raíz del repo:
+   ```bash
+   dotnet run --project tools/SprintPdfGenerator -- docs/sprints/sprint-{N}.md docs/sprints/sprint-{N}.pdf
+   ```
+3. Confirmar que el comando anterior terminó con "PDF generado en: ..." antes de dar
+   la tarea por terminada — si falla, arreglar el Markdown o el generador, no ignorar el error.
+4. Avisar al usuario la ruta de los dos archivos (`.md` fuente y `.pdf` generado) en la respuesta.
+
+El `.md` es la fuente editable (en este archivo o a mano) que se va actualizando sprint
+a sprint; el `.pdf` es el artefacto de consulta que se regenera siempre desde el `.md`,
+nunca se edita el PDF directamente.
