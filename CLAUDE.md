@@ -154,3 +154,4 @@ Antes de trabajar en áreas específicas, leer el skill correspondiente:
 5. Todo endpoint nuevo requiere su test de integración correspondiente
 6. Las llaves generadas son de **eliminación directa** (single-elimination bracket)
 7. El estado del servidor SIEMPRE vive en TanStack Query, nunca duplicarlo en Zustand
+8. Siempre que terminas de impementar/escribir codigo de algo que te pido, compilalo y fijate que no haya errores. si hay errores, corregelos y vuelve a compilar.

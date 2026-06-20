@@ -1,0 +1,22 @@
+{
+  "version": 2,
+  "dgSpecHash": "9CbsMLK3lek=",
+  "success": true,
+  "projectFilePath": "E:\\Proyecto de tkd\\Sistema de toneo v2\\torneo-deportivo-starter\\torneo-deportivo\\backend\\TorneoDeportivo.Application\\TorneoDeportivo.Application.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\maste\\.nuget\\packages\\fluentvalidation\\12.1.1\\fluentvalidation.12.1.1.nupkg.sha512",
+    "C:\\Users\\maste\\.nuget\\packages\\fluentvalidation.dependencyinjectionextensions\\12.1.1\\fluentvalidation.dependencyinjectionextensions.12.1.1.nupkg.sha512",
+    "C:\\Users\\maste\\.nuget\\packages\\mapster\\10.0.8\\mapster.10.0.8.nupkg.sha512",
+    "C:\\Users\\maste\\.nuget\\packages\\mapster.core\\10.0.8\\mapster.core.10.0.8.nupkg.sha512",
+    "C:\\Users\\maste\\.nuget\\packages\\mapster.dependencyinjection\\10.0.8\\mapster.dependencyinjection.10.0.8.nupkg.sha512",
+    "C:\\Users\\maste\\.nuget\\packages\\mediatr\\14.1.0\\mediatr.14.1.0.nupkg.sha512",
+    "C:\\Users\\maste\\.nuget\\packages\\mediatr.contracts\\2.0.1\\mediatr.contracts.2.0.1.nupkg.sha512",
+    "C:\\Users\\maste\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\10.0.0\\microsoft.extensions.dependencyinjection.abstractions.10.0.0.nupkg.sha512",
+    "C:\\Users\\maste\\.nuget\\packages\\microsoft.extensions.logging.abstractions\\10.0.0\\microsoft.extensions.logging.abstractions.10.0.0.nupkg.sha512",
+    "C:\\Users\\maste\\.nuget\\packages\\microsoft.identitymodel.abstractions\\8.14.0\\microsoft.identitymodel.abstractions.8.14.0.nupkg.sha512",
+    "C:\\Users\\maste\\.nuget\\packages\\microsoft.identitymodel.jsonwebtokens\\8.14.0\\microsoft.identitymodel.jsonwebtokens.8.14.0.nupkg.sha512",
+    "C:\\Users\\maste\\.nuget\\packages\\microsoft.identitymodel.logging\\8.14.0\\microsoft.identitymodel.logging.8.14.0.nupkg.sha512",
+    "C:\\Users\\maste\\.nuget\\packages\\microsoft.identitymodel.tokens\\8.14.0\\microsoft.identitymodel.tokens.8.14.0.nupkg.sha512"
+  ],
+  "logs": []
+}
