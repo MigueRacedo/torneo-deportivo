@@ -145,6 +145,8 @@ Antes de trabajar en áreas específicas, leer el skill correspondiente:
 - Patrones de API → `skills/api-patterns.md`
 - Schema de BD → `skills/database-schema.md`
 - Bracket con React Flow → `skills/react-flow-bracket.md`
+- UX/UI y Accesibilidad (WCAG 2.2 AA) → `skills/ux-ui-guidelines.md` — **obligatorio**
+  antes de crear o tocar cualquier componente visual del frontend
 
 ## Reglas Importantes
 1. **Nunca** hacer consultas SQL directas fuera del repositorio EF

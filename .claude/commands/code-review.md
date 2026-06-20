@@ -49,6 +49,24 @@ Realiza una code review completa de los cambios recientes del proyecto.
 - [ ] Los mensajes de éxito tienen feedback visual (toast)
 - [ ] Si toca el bracket: pan + zoom funcionan, BYEs y ganadores se ven bien
 
+**Accesibilidad y UX/UI (ver `skills/ux-ui-guidelines.md`):**
+- [ ] Color: blanco domina el fondo (60%), azul en navegación/secundarios (30%),
+      rojo SOLO en CTAs/acciones principales (10%) — no más del 10% de rojo en pantalla
+- [ ] Ningún estado se comunica solo con color (siempre + texto o ícono de respaldo)
+- [ ] Contraste de texto/fondo ≥ 4.5:1
+- [ ] Texto ≥ 12px, interlineado ≥ 1.5, alineado a la izquierda (nunca `text-justify`)
+- [ ] Jerarquía de headings sin saltos (`h1`→`h2`→`h3`, sin pasar de h1 a h3)
+- [ ] Spacing (margin/padding/gap) en múltiplos de 8pt
+- [ ] Grid responsive: 12 columnas desktop, 6-8 tablet, 1-4 mobile
+- [ ] Áreas interactivas ≥ 44x44px (mínimo absoluto 24x24px)
+- [ ] `focus-visible` con anillo/outline visible en todo elemento interactivo —
+      **prohibido** `outline: none`/`focus:outline-none` sin reemplazo
+- [ ] Acciones irreversibles (avanzar ronda, declarar ganador, eliminar) tienen
+      Undo o confirmación previa
+- [ ] Todo `<input>`/`<select>` tiene `<Label>` visible asociado (no solo placeholder)
+- [ ] Mensajes de error específicos y accionables (nunca "Se produjo un error")
+- [ ] HTML semántico (`header`, `nav`, `main`, `aside`) antes de ARIA/CSS complejo
+
 ## Salida Esperada
 1. Resumen de lo revisado
 2. Problemas encontrados (severity: 🔴 Critical / 🟡 Warning / 🔵 Info)

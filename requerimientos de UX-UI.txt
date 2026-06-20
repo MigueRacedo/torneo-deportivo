@@ -1,0 +1,34 @@
+Para redactar el archivo `.md` con las especificaciones de UX/UI para Claude Code, puedes estructurarlo basándote en los principios, heurísticas y criterios de accesibilidad (WCAG 2.2 nivel AA) detallados en la documentación. 
+
+Aquí tienes los puntos clave organizados para que puedas copiarlos y adaptarlos a tu documento:
+
+### 1. Sistema Visual y Color (Regla 60-30-10)
+Para integrar tus colores elegidos (rojo, azul y blanco) sin saturar la interfaz y respetando la accesibilidad, debes aplicar la **Regla 60-30-10**:
+*   **Color Neutro (60%):** Utiliza el **Blanco** como base de la interfaz. Esto dominará el espacio visual, aportando calma, coherencia y ayudando a superar el "horror vacui" (miedo al vacío) priorizando un diseño minimalista.
+*   **Color Complementario (30%):** Utiliza el **Azul** para elementos secundarios, barras de navegación o contenedores que necesiten generar contraste con el fondo sin competir por la atención principal. Este color transmite lealtad y confianza.
+*   **Color de Acento (10%):** Utiliza el **Rojo** como protagonista visual. Resérvalo para llamadas a la acción (CTAs), botones principales (como "Avanzar de ronda" o "Declarar ganador") y notificaciones importantes.
+*   **Accesibilidad de Color:** El contraste de los textos e imágenes de texto frente al fondo debe ser de al menos **4.5:1**. Además, no debes usar *solo el color* para comunicar información (por ejemplo, si un jugador está descalificado, además del color rojo debe haber un texto o icono que lo indique).
+
+### 2. Tipografía y Textos
+*   Utiliza tipografías **Sans Serif** para mejorar la legibilidad en pantallas.
+*   El tamaño mínimo de la fuente debe ser de **12 puntos** y debes utilizar un interlineado mínimo de 1.5 puntos. 
+*   **Alineación:** Los textos largos deben estar alineados a la izquierda; **nunca utilices texto justificado** en web.
+*   **Estructura semántica:** Los títulos deben seguir un orden estricto para los lectores de pantalla (`<h1>`, `<h2>`, `<h3>`). No te saltes niveles de jerarquía (por ejemplo, pasar de un `<h1>` a un `<h3>` directamente).
+
+### 3. Disposición y Grillas (Layout)
+*   **Sistema de espaciado:** Utiliza el **sistema de 8-pt**. Todos los márgenes, paddings y proporciones de la interfaz de la llave del torneo deben configurarse en múltiplos de 8 (8, 16, 24, 32, etc.) para mantener la armonía y la consistencia visual.
+*   **Sistema de grillas (Grid):** Para la versión de escritorio utiliza 12 columnas; para tablets entre 6 y 8 columnas; y para la versión móvil utiliza de 1 a 4 columnas.
+*   **Ley de Proximidad:** Agrupa visualmente a los competidores que se enfrentan en la llave. El espacio en blanco debe utilizarse de forma estratégica para diferenciar las distintas rondas del torneo.
+
+### 4. Interacción y Elementos Accionables (Ley de Fitts)
+*   **Áreas de interacción (Target Size):** Los botones interactivos de los jugadores y las llaves deben tener un tamaño mínimo de **24x24 píxeles**, pero lo ideal para cumplir con buenos estándares de accesibilidad motora es que midan al menos **44x44 píxeles**.
+*   **Foco Visible:** Todo elemento interactivo debe tener un indicador visual de foco claro cuando se navega por teclado (ej. mediante la tecla `Tab`). **Nunca** indiques en el código `outline: none` en el CSS para el estado `:focus`, ya que desorienta completamente a los usuarios que no usan mouse. Una buena práctica es usar algo como `outline: 3px solid #Color`.
+
+### 5. Prevención de Errores y Formularios
+*   **Control y libertad (Deshacer):** En un torneo de Taekwondo es fácil equivocarse al avanzar a un competidor en la llave. Incluye funciones claras para **deshacer** (Undo) o **cancelar** acciones.
+*   **Etiquetas explícitas:** Si hay formularios (ej. registro de competidores), todos los campos `<input>` deben tener su `<label>` asociado de forma visible. Los *placeholders* (el texto gris dentro del campo) no reemplazan a la etiqueta, ya que desaparecen al escribir y causan problemas de memoria.
+*   **Mensajes de error constructivos:** Si ocurre un error, el sistema debe indicar exactamente qué pasó y cómo solucionarlo en lenguaje claro y sencillo, evitando mensajes vagos como "Se produjo un error".
+
+**Tip extra para Claude Code:** Pídele explícitamente que utilice HTML Semántico (`<header>`, `<main>`, `<nav>`, `<aside>`) ya que esto es la base fundamental de la accesibilidad antes de aplicar cualquier capa de ARIA o CSS complejo. 
+
+Con estos puntos definidos en tu archivo `.md`, Claude tendrá directrices claras basadas en buenas prácticas de UX, leyes de interacción y estándares WCAG para generar un código mucho más robusto y usable.

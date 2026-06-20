@@ -285,6 +285,31 @@ export function crearConexionBracket(torneoId: string) {
 7. El `RoleGuard` protege todas las rutas del dashboard
 8. El bracket (React Flow) debe ser responsive (pan + zoom en mobile)
 
+## UX/UI y Accesibilidad (WCAG 2.2 AA) — obligatorio
+> Guía completa con ejemplos en Tailwind: `skills/ux-ui-guidelines.md`. Leerla antes
+> de crear o tocar cualquier componente visual.
+
+Resumen de las reglas no negociables:
+- **Color (regla 60-30-10):** blanco = base/fondo (60%), azul = navegación/secundario (30%),
+  rojo = SOLO CTAs y acciones principales (10%, ej. "Declarar ganador"). Nunca comunicar
+  un estado solo con color (siempre + texto/ícono). Contraste texto/fondo ≥ 4.5:1.
+- **Tipografía:** Sans Serif, mínimo 12px, interlineado ≥ 1.5, alineado a la izquierda
+  (nunca `text-justify`). Jerarquía de headings sin saltos (`h1`→`h2`→`h3`).
+- **Layout:** spacing en múltiplos de 8pt (`p-2`, `p-4`, `p-6`, `p-8`...). Grid de 12
+  columnas en desktop, 6-8 en tablet, 1-4 en mobile.
+- **Interacción (Ley de Fitts):** áreas clickeables ≥ 44x44px (mínimo absoluto 24x24px).
+  Foco de teclado siempre visible — **prohibido** `outline: none`/`focus:outline-none`
+  sin reemplazo (usar `focus-visible:ring-2` o `focus-visible:outline`).
+- **Prevención de errores:** acciones irreversibles (avanzar ronda, declarar ganador,
+  eliminar) necesitan Undo o confirmación. Todo `<input>` lleva `<Label>` visible
+  (el placeholder no reemplaza al label). Mensajes de error específicos y accionables,
+  nunca "Se produjo un error".
+- **HTML semántico primero:** `<header>`, `<nav>`, `<main>`, `<aside>` antes de pensar
+  en ARIA o CSS complejo.
+
+Esto se revisa automáticamente con `/code-review frontend` (ver checklist de
+Accesibilidad/UX en `.claude/commands/code-review.md`).
+
 ## Variables de Entorno (.env)
 ```
 VITE_API_URL=http://localhost:5000
