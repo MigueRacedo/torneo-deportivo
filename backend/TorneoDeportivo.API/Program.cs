@@ -1,11 +1,14 @@
 using System.Text;
 using FastEndpoints;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using TorneoDeportivo.API.Hubs;
 using TorneoDeportivo.API.Middleware;
 using TorneoDeportivo.Application;
+using TorneoDeportivo.Domain.Interfaces;
 using TorneoDeportivo.Infrastructure;
+using TorneoDeportivo.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -41,6 +44,16 @@ builder.Services.AddCors(options => options.AddDefaultPolicy(policy => policy
     .AllowCredentials()));
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<TorneoDbContext>();
+    await db.Database.MigrateAsync();
+
+    var usuarios = scope.ServiceProvider.GetRequiredService<IUsuarioRepository>();
+    var passwordHasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
+    await DbSeeder.SeedAsync(usuarios, passwordHasher);
+}
 
 app.UseCors();
 app.UseMiddleware<ExceptionHandlingMiddleware>();

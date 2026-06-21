@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useTorneos } from '@/hooks/useTorneos';
 import { ApiError } from '@/lib/api';
+import { useAuthStore } from '@/store/authStore';
 import { TorneoCard } from './TorneoCard';
 
 function TorneoListSkeleton() {
@@ -16,14 +17,17 @@ function TorneoListSkeleton() {
 
 export function TorneoList() {
   const { data: torneos, isLoading, error } = useTorneos();
+  const esCoordinador = useAuthStore((state) => state.usuario?.rol === 'Coordinador');
 
   return (
     <section className="flex flex-col gap-6">
       <header className="flex items-center justify-between gap-4">
         <h1 className="text-2xl leading-relaxed font-bold text-left">Torneos</h1>
-        <Button render={<Link to="/torneos/nuevo" />} className="min-h-11 px-6">
-          Nuevo torneo
-        </Button>
+        {esCoordinador && (
+          <Button render={<Link to="/torneos/nuevo" />} className="min-h-11 px-6">
+            Nuevo torneo
+          </Button>
+        )}
       </header>
 
       {isLoading && <TorneoListSkeleton />}
@@ -36,7 +40,9 @@ export function TorneoList() {
 
       {!isLoading && !error && torneos?.length === 0 && (
         <p className="text-sm leading-relaxed text-muted-foreground">
-          Todavía no hay torneos creados. Hacé clic en "Nuevo torneo" para crear el primero.
+          {esCoordinador
+            ? 'Todavía no hay torneos creados. Hacé clic en "Nuevo torneo" para crear el primero.'
+            : 'Todavía no hay torneos creados.'}
         </p>
       )}
 

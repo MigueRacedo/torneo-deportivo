@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\TorneoDeportivo.Application\TorneoDeportivo.Application.csproj" />
+    <ProjectReference Include="..\TorneoDeportivo.Infrastructure\TorneoDeportivo.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

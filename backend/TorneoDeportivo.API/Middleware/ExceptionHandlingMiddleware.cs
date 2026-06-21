@@ -3,7 +3,7 @@ using TorneoDeportivo.Application.Common.Exceptions;
 
 namespace TorneoDeportivo.API.Middleware;
 
-public class ExceptionHandlingMiddleware(RequestDelegate next)
+public class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger)
 {
     public async Task InvokeAsync(HttpContext context)
     {
@@ -29,6 +29,24 @@ public class ExceptionHandlingMiddleware(RequestDelegate next)
         {
             context.Response.StatusCode = StatusCodes.Status409Conflict;
             await context.Response.WriteAsJsonAsync(new { message = ex.Message });
+        }
+        catch (UnauthorizedException ex)
+        {
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            await context.Response.WriteAsJsonAsync(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error no controlado procesando {Method} {Path}", context.Request.Method, context.Request.Path);
+
+            if (context.Response.HasStarted)
+                throw;
+
+            context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+            await context.Response.WriteAsJsonAsync(new
+            {
+                message = "Ocurrió un error inesperado. Si el problema persiste, contactá al administrador."
+            });
         }
     }
 }

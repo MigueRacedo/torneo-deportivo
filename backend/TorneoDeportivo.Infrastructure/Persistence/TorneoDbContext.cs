@@ -9,6 +9,7 @@ public class TorneoDbContext(DbContextOptions<TorneoDbContext> options) : DbCont
     public DbSet<Categoria> Categorias => Set<Categoria>();
     public DbSet<Competidor> Competidores => Set<Competidor>();
     public DbSet<LlaveCompetencia> Llaves => Set<LlaveCompetencia>();
+    public DbSet<Usuario> Usuarios => Set<Usuario>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
