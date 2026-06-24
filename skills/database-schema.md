@@ -108,16 +108,22 @@ public enum Graduacion
 {
     // Cinturones de color (Geup)
     CinturonBlanco = 0,
-    CinturonAmarillo = 1,
-    CinturonNaranja = 2,
-    CinturonVerde = 3,
-    CinturonAzul = 4,
-    CinturonRojo = 5,
+    CinturonBlancoPtaAmarilla = 1,
+    CinturonAmarillo = 2,
+    CinturonAmarilloPtaVerde = 3,
+    CinturonVerde = 4,
+    CinturonVerdePtaAzul = 5,
+    CinturonAzul = 6,
+    CinturonAzulPtaRoja = 7,
+    CinturonRojo = 8,
+    CinturonRojoPtaNegra = 9,
     // Cinturones negros (Dan)
-    CinturonNegro1Dan = 6,
-    CinturonNegro2Dan = 7,
-    CinturonNegro3Dan = 8,
-    CinturonNegro4Dan = 9
+    CinturonNegro1Dan = 10,
+    CinturonNegro2Dan = 11,
+    CinturonNegro3Dan = 12,
+    CinturonNegro4Dan = 13,
+    CinturonNegro5Dan = 14,
+    CinturonNegro6Dan = 15
 }
 ```
 

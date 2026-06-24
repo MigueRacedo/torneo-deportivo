@@ -14,23 +14,24 @@ Cuando se ejecute este comando con un ID de historia (ej: H0001):
    - Si involucra bracket/llaves → leer `skills/bracket-algorithm.md` Y `skills/react-flow-bracket.md`
    - Siempre leer `backend/CLAUDE.md` y `frontend/CLAUDE.md`
    - Para BD → leer `skills/database-schema.md`
+   - Siempre leer `skills/ux-ui-guidelines.md`
 
 3. **Implementar BACKEND en este orden:**
-   a. **Entidad de Dominio** (si es nueva) en `Domain/Entities/`
-   b. **Configuración EF** en `Infrastructure/Persistence/Configurations/`
-   c. **Migración** (generar el comando, no ejecutar)
-   d. **Command o Query + Handler** en `Application/Features/`
-   e. **Response/Request records** y config de Mapster si hace falta
-   f. **Endpoint (FastEndpoints)** en `API/Endpoints/` con su Validator
+   1. **Entidad de Dominio** (si es nueva) en `Domain/Entities/`
+   2. **Configuración EF** en `Infrastructure/Persistence/Configurations/`
+   3. **Migración** (generar el comando, no ejecutar)
+   4. **Command o Query + Handler** en `Application/Features/`
+   5. **Response/Request records** y config de Mapster si hace falta
+   6. **Endpoint (FastEndpoints)** en `API/Endpoints/` con su Validator
       - Recordar `Roles("...")` según la tabla de roles del CLAUDE.md raíz
-   g. **Tests** del handler (xUnit + NSubstitute)
+   7. **Tests** del handler (xUnit + NSubstitute)
 
 4. **Implementar FRONTEND en este orden:**
-   h. **Types TypeScript** (si hay nuevos) en `src/types/index.ts`
-   i. **Método del API client** en `src/lib/api.ts`
-   j. **Hook de TanStack Query** en `src/hooks/` (con query keys centralizadas)
-   k. **Componentes de UI** en `src/components/` (con React Hook Form + Zod si hay form)
-   l. **Ruta/página** en `src/routes/`
+   1. **Types TypeScript** (si hay nuevos) en `src/types/index.ts`
+   2. **Método del API client** en `src/lib/api.ts`
+   3. **Hook de TanStack Query** en `src/hooks/` (con query keys centralizadas)
+   4. **Componentes de UI** en `src/components/` (con React Hook Form + Zod si hay form)
+   5. **Ruta/página** en `src/routes/`
 
 5. **Generar un checklist** al final mostrando qué se implementó
 
