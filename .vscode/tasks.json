@@ -1,0 +1,119 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "docker: levantar infra (db, redis, minio)",
+            "type": "shell",
+            "command": "docker",
+            "args": ["compose", "up", "-d", "db", "redis", "minio"],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "presentation": {
+                "panel": "shared",
+                "group": "torneo",
+                "reveal": "silent"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "backend: build",
+            "type": "process",
+            "command": "dotnet",
+            "args": [
+                "build",
+                "${workspaceFolder}/backend/TorneoDeportivo.API/TorneoDeportivo.API.csproj"
+            ],
+            "problemMatcher": "$msCompile",
+            "presentation": {
+                "panel": "shared",
+                "group": "torneo",
+                "reveal": "silent"
+            }
+        },
+        {
+            "label": "backend: run (dotnet run)",
+            "type": "shell",
+            "command": "dotnet",
+            "args": ["run", "--project", "${workspaceFolder}/backend/TorneoDeportivo.API/TorneoDeportivo.API.csproj"],
+            "isBackground": true,
+            "dependsOn": ["docker: levantar infra (db, redis, minio)"],
+            "presentation": {
+                "panel": "dedicated",
+                "group": "torneo",
+                "reveal": "always"
+            },
+            "problemMatcher": {
+                "owner": "custom",
+                "pattern": {
+                    "regexp": "____never____"
+                },
+                "background": {
+                    "activeOnStart": true,
+                    "beginsPattern": ".*",
+                    "endsPattern": "Now listening on:.*|Application started.*"
+                }
+            }
+        },
+        {
+            "label": "backend: preparar (docker + build)",
+            "dependsOn": [
+                "docker: levantar infra (db, redis, minio)",
+                "backend: build"
+            ],
+            "dependsOrder": "sequence",
+            "problemMatcher": []
+        },
+        {
+            "label": "frontend: npm install",
+            "type": "shell",
+            "command": "npm",
+            "args": ["install"],
+            "options": {
+                "cwd": "${workspaceFolder}/frontend"
+            },
+            "presentation": {
+                "panel": "shared",
+                "group": "torneo",
+                "reveal": "silent"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "frontend: dev (vite)",
+            "type": "shell",
+            "command": "npm",
+            "args": ["run", "dev"],
+            "options": {
+                "cwd": "${workspaceFolder}/frontend"
+            },
+            "isBackground": true,
+            "presentation": {
+                "panel": "dedicated",
+                "group": "torneo",
+                "reveal": "always"
+            },
+            "problemMatcher": {
+                "owner": "custom",
+                "pattern": {
+                    "regexp": "____never____"
+                },
+                "background": {
+                    "activeOnStart": true,
+                    "beginsPattern": ".*",
+                    "endsPattern": "ready in.*|Local:.*"
+                }
+            }
+        },
+        {
+            "label": "torneo: levantar todo",
+            "dependsOn": [
+                "docker: levantar infra (db, redis, minio)",
+                "backend: run (dotnet run)",
+                "frontend: dev (vite)"
+            ],
+            "dependsOrder": "sequence",
+            "problemMatcher": []
+        }
+    ]
+}
