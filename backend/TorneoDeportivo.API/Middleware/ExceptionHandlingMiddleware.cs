@@ -3,8 +3,16 @@ using TorneoDeportivo.Application.Common.Exceptions;
 
 namespace TorneoDeportivo.API.Middleware;
 
+/// <summary>
+/// Middleware global que captura excepciones de la pipeline HTTP y las traduce a respuestas JSON
+/// con el código de estado apropiado (400, 401, 404, 409 o 500).
+/// </summary>
 public class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger)
 {
+    /// <summary>
+    /// Ejecuta el siguiente middleware de la pipeline y captura cualquier excepción para transformarla
+    /// en una respuesta de error estandarizada.
+    /// </summary>
     public async Task InvokeAsync(HttpContext context)
     {
         try

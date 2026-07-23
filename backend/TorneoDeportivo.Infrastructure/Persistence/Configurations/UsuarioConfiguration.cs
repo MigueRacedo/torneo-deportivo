@@ -4,8 +4,12 @@ using TorneoDeportivo.Domain.Entities;
 
 namespace TorneoDeportivo.Infrastructure.Persistence.Configurations;
 
+/// <summary>
+/// Configuración Fluent API de EF Core para el mapeo de <see cref="Usuario"/> a la tabla "usuarios".
+/// </summary>
 public class UsuarioConfiguration : IEntityTypeConfiguration<Usuario>
 {
+    /// <summary>Define columnas, tipos, longitudes y el índice único de email de la entidad Usuario.</summary>
     public void Configure(EntityTypeBuilder<Usuario> builder)
     {
         builder.ToTable("usuarios");

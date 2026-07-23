@@ -44,6 +44,20 @@ FastEndpoints es un framework REST minimalista sobre .NET. Ventajas para este pr
 - **Validación integrada** con FluentValidation
 - **Generación automática** de Swagger
 
+## Documentación XML (obligatorio)
+Toda clase, interfaz, enum y método público nuevo debe incluir un comentario `/// <summary>` en español
+en su cabecera, explicando qué hace y su rol en el flujo — para que se entienda sin leer la implementación.
+- Ejemplo:
+  ```csharp
+  /// <summary>
+  /// Handler CQRS que procesa el comando de creación de torneo y lo persiste en estado Borrador.
+  /// </summary>
+  public class CreateTorneoCommandHandler : IRequestHandler<CreateTorneoCommand, TorneoResponse>
+  ```
+- En records (Request/Response/Command/Query) alcanza con un `<summary>` sobre la declaración del record.
+- En entidades de dominio alcanza con un `<summary>` a nivel de clase (no hace falta por cada propiedad).
+- Usar `<param>` / `<returns>` solo cuando aportan valor real (parámetros no obvios).
+
 ## Patrones Obligatorios
 
 ### Endpoint (FastEndpoints) + Command (CQRS)

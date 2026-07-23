@@ -2,6 +2,10 @@ using TorneoDeportivo.Domain.Enums;
 
 namespace TorneoDeportivo.Domain.Entities;
 
+/// <summary>
+/// Categoría de competencia dentro de un torneo (e.g. combate femenino, 12-13 años, cinturón amarillo-verde),
+/// que agrupa a los competidores elegibles y sus llaves de eliminación.
+/// </summary>
 public class Categoria
 {
     public Guid Id { get; set; }

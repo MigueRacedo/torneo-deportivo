@@ -2,6 +2,10 @@ using TorneoDeportivo.Domain.Enums;
 
 namespace TorneoDeportivo.Domain.Entities;
 
+/// <summary>
+/// Evento deportivo raíz del sistema: agrupa las categorías y competidores inscriptos, con su estado
+/// de ciclo de vida (Borrador, Activo, Finalizado).
+/// </summary>
 public class Torneo
 {
     public Guid Id { get; set; }

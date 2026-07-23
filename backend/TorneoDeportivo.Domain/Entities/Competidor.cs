@@ -1,5 +1,8 @@
 namespace TorneoDeportivo.Domain.Entities;
 
+/// <summary>
+/// Deportista inscripto en un torneo dentro de una categoría específica, con sus datos físicos y de escuela.
+/// </summary>
 public class Competidor
 {
     public Guid Id { get; set; }

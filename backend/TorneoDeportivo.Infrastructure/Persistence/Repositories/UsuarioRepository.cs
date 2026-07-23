@@ -4,14 +4,20 @@ using TorneoDeportivo.Domain.Interfaces;
 
 namespace TorneoDeportivo.Infrastructure.Persistence.Repositories;
 
+/// <summary>
+/// Implementación de <see cref="IUsuarioRepository"/> basada en EF Core sobre <see cref="TorneoDbContext"/>.
+/// </summary>
 public class UsuarioRepository(TorneoDbContext db) : IUsuarioRepository
 {
+    /// <summary>Busca un usuario por su email; devuelve null si no existe.</summary>
     public Task<Usuario?> GetByEmailAsync(string email, CancellationToken ct) =>
         db.Usuarios.FirstOrDefaultAsync(u => u.Email == email, ct);
 
+    /// <summary>Indica si existe al menos un usuario registrado.</summary>
     public Task<bool> ExisteAlgunoAsync(CancellationToken ct) =>
         db.Usuarios.AnyAsync(ct);
 
+    /// <summary>Agrega un nuevo usuario y guarda los cambios.</summary>
     public async Task AddAsync(Usuario usuario, CancellationToken ct)
     {
         db.Usuarios.Add(usuario);

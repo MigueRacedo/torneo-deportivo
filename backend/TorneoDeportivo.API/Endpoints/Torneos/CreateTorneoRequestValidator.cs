@@ -3,6 +3,9 @@ using FluentValidation;
 
 namespace TorneoDeportivo.API.Endpoints.Torneos;
 
+/// <summary>
+/// Valida que el <see cref="CreateTorneoRequest"/> tenga nombre, lugar y una fecha futura válidos.
+/// </summary>
 public class CreateTorneoRequestValidator : Validator<CreateTorneoRequest>
 {
     public CreateTorneoRequestValidator()

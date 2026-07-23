@@ -4,8 +4,12 @@ using TorneoDeportivo.Domain.Entities;
 
 namespace TorneoDeportivo.Infrastructure.Persistence.Configurations;
 
+/// <summary>
+/// Configuración Fluent API de EF Core para el mapeo de <see cref="Competidor"/> a la tabla "competidores".
+/// </summary>
 public class CompetidorConfiguration : IEntityTypeConfiguration<Competidor>
 {
+    /// <summary>Define columnas, tipos y longitudes de la entidad Competidor.</summary>
     public void Configure(EntityTypeBuilder<Competidor> builder)
     {
         builder.ToTable("competidores");

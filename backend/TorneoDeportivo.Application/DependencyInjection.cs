@@ -8,8 +8,15 @@ using TorneoDeportivo.Application.Common.Behaviors;
 
 namespace TorneoDeportivo.Application;
 
+/// <summary>
+/// Registro de servicios de la capa Application: MediatR (CQRS), FluentValidation y Mapster.
+/// </summary>
 public static class DependencyInjection
 {
+    /// <summary>
+    /// Registra en el contenedor de DI los handlers de MediatR, el comportamiento de validación,
+    /// los validadores de FluentValidation y la configuración de mapeo de Mapster.
+    /// </summary>
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
         var assembly = Assembly.GetExecutingAssembly();

@@ -4,8 +4,13 @@ using TorneoDeportivo.Domain.Entities;
 
 namespace TorneoDeportivo.Infrastructure.Persistence.Configurations;
 
+/// <summary>
+/// Configuración Fluent API de EF Core para el mapeo de <see cref="LlaveCompetencia"/> a la tabla
+/// "llaves_competencia", incluyendo las relaciones con los competidores del enfrentamiento y el ganador.
+/// </summary>
 public class LlaveCompetenciaConfiguration : IEntityTypeConfiguration<LlaveCompetencia>
 {
+    /// <summary>Define columnas, conversión de enum y relaciones de la entidad LlaveCompetencia.</summary>
     public void Configure(EntityTypeBuilder<LlaveCompetencia> builder)
     {
         builder.ToTable("llaves_competencia");

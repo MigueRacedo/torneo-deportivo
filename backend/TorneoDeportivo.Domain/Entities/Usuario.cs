@@ -2,6 +2,10 @@ using TorneoDeportivo.Domain.Enums;
 
 namespace TorneoDeportivo.Domain.Entities;
 
+/// <summary>
+/// Usuario del sistema con credenciales de acceso y un rol (Coordinador, Profesor o Director)
+/// que determina sus permisos.
+/// </summary>
 public class Usuario
 {
     public Guid Id { get; set; }

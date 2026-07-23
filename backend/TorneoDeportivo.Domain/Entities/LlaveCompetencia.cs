@@ -2,6 +2,10 @@ using TorneoDeportivo.Domain.Enums;
 
 namespace TorneoDeportivo.Domain.Entities;
 
+/// <summary>
+/// Nodo del bracket de eliminación directa: representa un enfrentamiento entre dos competidores
+/// (o un bye) en una ronda y posición determinadas de una categoría.
+/// </summary>
 public class LlaveCompetencia
 {
     public Guid Id { get; set; }

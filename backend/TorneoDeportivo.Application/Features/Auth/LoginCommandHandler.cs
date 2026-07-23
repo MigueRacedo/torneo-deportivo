@@ -5,6 +5,10 @@ using TorneoDeportivo.Domain.Interfaces;
 
 namespace TorneoDeportivo.Application.Features.Auth;
 
+/// <summary>
+/// Handler CQRS que procesa el comando de login: busca el usuario por email, verifica la contraseña
+/// y genera el token JWT correspondiente.
+/// </summary>
 public class LoginCommandHandler(
     IUsuarioRepository usuarioRepository,
     IPasswordHasher passwordHasher,
@@ -12,6 +16,10 @@ public class LoginCommandHandler(
 {
     private const string CredencialesInvalidas = "Email o contraseña incorrectos.";
 
+    /// <summary>
+    /// Valida las credenciales del usuario y, si son correctas, devuelve un <see cref="LoginResponse"/>
+    /// con el token JWT generado; en caso contrario lanza <see cref="UnauthorizedException"/>.
+    /// </summary>
     public async Task<LoginResponse> Handle(LoginCommand request, CancellationToken ct)
     {
         var usuario = await usuarioRepository.GetByEmailAsync(request.Email, ct);

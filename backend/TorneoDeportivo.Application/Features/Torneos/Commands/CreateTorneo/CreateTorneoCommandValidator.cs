@@ -2,6 +2,9 @@ using FluentValidation;
 
 namespace TorneoDeportivo.Application.Features.Torneos.Commands.CreateTorneo;
 
+/// <summary>
+/// Valida que el <see cref="CreateTorneoCommand"/> tenga nombre, lugar y una fecha futura válidos.
+/// </summary>
 public class CreateTorneoCommandValidator : AbstractValidator<CreateTorneoCommand>
 {
     public CreateTorneoCommandValidator()

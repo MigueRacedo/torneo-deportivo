@@ -10,6 +10,8 @@ using TorneoDeportivo.Domain.Interfaces;
 using TorneoDeportivo.Infrastructure;
 using TorneoDeportivo.Infrastructure.Persistence;
 
+// Punto de entrada de la API: registra los servicios de las capas Application e Infrastructure,
+// configura autenticación JWT, CORS, FastEndpoints y SignalR, aplica migraciones y siembra datos iniciales.
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddApplication();
@@ -45,6 +47,7 @@ builder.Services.AddCors(options => options.AddDefaultPolicy(policy => policy
 
 var app = builder.Build();
 
+// Aplica migraciones pendientes de la base de datos y siembra los usuarios iniciales (seed).
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<TorneoDbContext>();

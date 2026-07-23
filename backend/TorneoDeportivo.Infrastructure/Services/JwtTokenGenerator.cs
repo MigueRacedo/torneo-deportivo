@@ -8,8 +8,15 @@ using TorneoDeportivo.Domain.Entities;
 
 namespace TorneoDeportivo.Infrastructure.Services;
 
+/// <summary>
+/// Implementación de <see cref="IJwtTokenGenerator"/> que emite tokens JWT firmados con HMAC-SHA256
+/// a partir de la configuración Jwt:Secret/Issuer/Audience.
+/// </summary>
 public class JwtTokenGenerator(IConfiguration configuration) : IJwtTokenGenerator
 {
+    /// <summary>
+    /// Genera un token JWT con las claims del usuario (id, email, nombre y rol), válido por 8 horas.
+    /// </summary>
     public string GenerateToken(Usuario usuario)
     {
         var secret = configuration["Jwt:Secret"]

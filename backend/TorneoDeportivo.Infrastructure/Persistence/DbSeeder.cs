@@ -4,8 +4,15 @@ using TorneoDeportivo.Domain.Interfaces;
 
 namespace TorneoDeportivo.Infrastructure.Persistence;
 
+/// <summary>
+/// Siembra datos iniciales de la base de datos al arrancar la aplicación (usuario Coordinador demo).
+/// </summary>
 public static class DbSeeder
 {
+    /// <summary>
+    /// Crea un usuario Coordinador de prueba si todavía no existe ningún usuario registrado; no hace nada
+    /// si la base de datos ya tiene usuarios.
+    /// </summary>
     public static async Task SeedAsync(IUsuarioRepository usuarios, IPasswordHasher passwordHasher, CancellationToken ct = default)
     {
         if (await usuarios.ExisteAlgunoAsync(ct))

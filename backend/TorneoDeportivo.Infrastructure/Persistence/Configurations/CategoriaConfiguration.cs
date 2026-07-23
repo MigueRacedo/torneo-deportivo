@@ -4,8 +4,12 @@ using TorneoDeportivo.Domain.Entities;
 
 namespace TorneoDeportivo.Infrastructure.Persistence.Configurations;
 
+/// <summary>
+/// Configuración Fluent API de EF Core para el mapeo de <see cref="Categoria"/> a la tabla "categorias".
+/// </summary>
 public class CategoriaConfiguration : IEntityTypeConfiguration<Categoria>
 {
+    /// <summary>Define columnas, tipos, longitudes y relaciones de la entidad Categoria.</summary>
     public void Configure(EntityTypeBuilder<Categoria> builder)
     {
         builder.ToTable("categorias");
