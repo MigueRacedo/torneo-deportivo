@@ -1,5 +1,12 @@
 import { useAuthStore } from '@/store/authStore';
-import type { CreateTorneoInput, LoginInput, LoginResult, Torneo } from '@/types';
+import type {
+  Categoria,
+  CreateCategoriaInput,
+  CreateTorneoInput,
+  LoginInput,
+  LoginResult,
+  Torneo,
+} from '@/types';
 
 const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:5000';
 
@@ -12,12 +19,37 @@ export class ApiError extends Error {
   }
 }
 
+// Extrae el primer mensaje de error útil de la respuesta del backend.
+// FastEndpoints devuelve `errors` como objeto ({ campo: ["msg"] }) y nuestro
+// middleware como arreglo ([{ field, message }]); soportamos ambas formas.
+function extraerMensajeError(body: unknown): string | null {
+  if (!body || typeof body !== 'object') return null;
+  const { errors, message } = body as { errors?: unknown; message?: unknown };
+
+  if (Array.isArray(errors) && errors.length > 0) {
+    const first = errors[0];
+    if (typeof first === 'string') return first;
+    if (first && typeof first === 'object' && 'message' in first) {
+      return String((first as { message: unknown }).message);
+    }
+  } else if (errors && typeof errors === 'object') {
+    const first = Object.values(errors as Record<string, unknown>)[0];
+    if (Array.isArray(first) && first.length > 0) return String(first[0]);
+    if (typeof first === 'string') return first;
+  }
+
+  return typeof message === 'string' ? message : null;
+}
+
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   const token = useAuthStore.getState().token;
+  // Solo enviamos Content-Type cuando hay cuerpo: en un GET sin body, el header
+  // haría que FastEndpoints intente deserializar un JSON vacío y devuelva 400.
+  const hasBody = options?.body != null;
   const res = await fetch(`${BASE_URL}${path}`, {
     ...options,
     headers: {
-      'Content-Type': 'application/json',
+      ...(hasBody ? { 'Content-Type': 'application/json' } : {}),
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...options?.headers,
     },
@@ -29,8 +61,7 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
     }
 
     const body = await res.json().catch(() => null);
-    const message =
-      body?.errors?.[0]?.message ?? body?.message ?? 'No se pudo completar la operación. Intentá de nuevo.';
+    const message = extraerMensajeError(body) ?? 'No se pudo completar la operación. Intentá de nuevo.';
     throw new ApiError(res.status, message);
   }
 
@@ -47,5 +78,14 @@ export const api = {
     obtener: (id: string) => apiFetch<Torneo>(`/api/v1/torneos/${id}`),
     crear: (data: CreateTorneoInput) =>
       apiFetch<Torneo>('/api/v1/torneos', { method: 'POST', body: JSON.stringify(data) }),
+  },
+  categorias: {
+    listar: (torneoId: string) =>
+      apiFetch<Categoria[]>(`/api/v1/torneos/${torneoId}/categorias`),
+    crear: (torneoId: string, data: CreateCategoriaInput) =>
+      apiFetch<Categoria>(`/api/v1/torneos/${torneoId}/categorias`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
   },
 };

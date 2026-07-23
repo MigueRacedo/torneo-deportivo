@@ -143,18 +143,26 @@ class ApiError extends Error {
 }
 
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
-  const token = localStorage.getItem('token');
+  const token = useAuthStore.getState().token;
+  // ⚠️ Content-Type SOLO cuando hay body. En un GET sin body, mandar
+  // 'application/json' hace que FastEndpoints intente deserializar un JSON
+  // vacío y devuelva 400 "One or more errors occurred!" (serializerErrors).
+  const hasBody = options?.body != null;
   const res = await fetch(`${BASE_URL}${path}`, {
     ...options,
     headers: {
-      'Content-Type': 'application/json',
+      ...(hasBody ? { 'Content-Type': 'application/json' } : {}),
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...options?.headers,
     },
   });
   if (!res.ok) {
-    const error = await res.json().catch(() => ({ message: 'Error desconocido' }));
-    throw new ApiError(res.status, error.message);
+    if (res.status === 401) useAuthStore.getState().logout();
+    const body = await res.json().catch(() => null);
+    // FastEndpoints devuelve errors como OBJETO ({ campo: ["msg"] }); nuestro
+    // middleware como ARREGLO ([{ field, message }]). Soportar ambas formas
+    // y NO usar body.message a secas (es el genérico "One or more errors occurred!").
+    throw new ApiError(res.status, extraerMensajeError(body) ?? 'No se pudo completar la operación. Intentá de nuevo.');
   }
   return res.status === 204 ? (undefined as T) : res.json();
 }
@@ -284,6 +292,13 @@ export function crearConexionBracket(torneoId: string) {
 6. La validación del cliente es UX, no seguridad — el backend siempre re-valida
 7. El `RoleGuard` protege todas las rutas del dashboard
 8. El bracket (React Flow) debe ser responsive (pan + zoom en mobile)
+9. **`Content-Type: application/json` SOLO en requests con body** (POST/PUT/PATCH).
+   Nunca en GET/DELETE sin body: FastEndpoints intentaría parsear un JSON vacío y
+   responde 400 `"One or more errors occurred!"`. Toda llamada pasa por `apiFetch`,
+   que ya lo maneja — no reintroducir el header fijo.
+10. **Parsear los errores del backend con `extraerMensajeError`**, nunca `body.message`
+    a secas: en las validaciones de FastEndpoints ese campo es el genérico
+    `"One or more errors occurred!"`; el detalle está en `errors` (objeto `{campo: [msg]}`).
 
 ## UX/UI y Accesibilidad (WCAG 2.2 AA) — obligatorio
 > Guía completa con ejemplos en Tailwind: `skills/ux-ui-guidelines.md`. Leerla antes

@@ -283,6 +283,18 @@ app.Run();
 - 409: ConflictException (e.g. torneo ya con llaves generadas)
 - 500: handled por middleware global
 
+### Contrato de respuesta de error (importante para el frontend)
+FastEndpoints, ante un fallo de `Validator<T>` **o de binding/deserialización**, responde
+400 con esta forma (el `message` es genérico; el detalle va en `errors` como **objeto**):
+```json
+{ "statusCode": 400, "message": "One or more errors occurred!",
+  "errors": { "campo": ["mensaje específico"] } }
+```
+- El cliente debe leer `errors[campo][0]`, **no** `message` (ver `extraerMensajeError` en `frontend/src/lib/api.ts`).
+- ⚠️ Un **GET/DELETE con header `Content-Type: application/json` y sin body** dispara este
+  400 (`serializerErrors`: "The input does not contain any JSON tokens"). El cliente solo
+  debe mandar `Content-Type` cuando hay body. Ver regla 9 de `frontend/CLAUDE.md`.
+
 ## Tests
 - **Unit tests**: xUnit + NSubstitute para handlers de CQRS y BracketGeneratorService
 - **Integration tests**: FastEndpoints tiene `App.Fixture` para testing de endpoints end-to-end

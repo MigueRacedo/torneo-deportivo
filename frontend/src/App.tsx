@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { RoleGuard } from '@/components/layout/RoleGuard';
 import LoginPage from '@/routes/login';
+import CategoriasPage from '@/routes/torneos/$torneoId/categorias';
 import NuevoTorneoPage from '@/routes/torneos/nuevo';
 import TorneosPage from '@/routes/torneos';
 import { useAuthStore } from '@/store/authStore';
@@ -57,6 +58,7 @@ function App() {
                     </RoleGuard>
                   }
                 />
+                <Route path="/torneos/:torneoId/categorias" element={<CategoriasPage />} />
               </Routes>
             </AppShell>
           </RoleGuard>

@@ -34,3 +34,54 @@ export interface CreateTorneoInput {
   lugar: string;
   imagenFlyer?: string;
 }
+
+export type TipoCompetencia = 'Combate' | 'Formas';
+export type Sexo = 'M' | 'F';
+
+/** Graduaciones de Taekwondo (de menor a mayor), usadas en los rangos de categoría. */
+export const GRADUACIONES = [
+  'CinturonBlanco',
+  'CinturonBlancoPtaAmarilla',
+  'CinturonAmarillo',
+  'CinturonAmarilloPtaVerde',
+  'CinturonVerde',
+  'CinturonVerdePtaAzul',
+  'CinturonAzul',
+  'CinturonAzulPtaRoja',
+  'CinturonRojo',
+  'CinturonRojoPtaNegra',
+  'CinturonNegro1Dan',
+  'CinturonNegro2Dan',
+  'CinturonNegro3Dan',
+  'CinturonNegro4Dan',
+  'CinturonNegro5Dan',
+  'CinturonNegro6Dan',
+] as const;
+
+export type Graduacion = (typeof GRADUACIONES)[number];
+
+export interface Categoria {
+  id: string;
+  torneoId: string;
+  nombre: string;
+  tipoCompetencia: TipoCompetencia;
+  sexo: Sexo;
+  rangoEdadMin: number;
+  rangoEdadMax: number;
+  rangoPesoMin: number;
+  rangoPesoMax: number;
+  rangoGraduacionMin: string;
+  rangoGraduacionMax: string;
+}
+
+export interface CreateCategoriaInput {
+  nombre: string;
+  tipoCompetencia: TipoCompetencia;
+  sexo: Sexo;
+  rangoEdadMin: number;
+  rangoEdadMax: number;
+  rangoPesoMin: number;
+  rangoPesoMax: number;
+  rangoGraduacionMin: string;
+  rangoGraduacionMax: string;
+}

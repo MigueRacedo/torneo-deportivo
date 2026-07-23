@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import type { Torneo, TorneoEstado } from '@/types';
 
 const ESTADO_LABEL: Record<TorneoEstado, string> = {
@@ -31,6 +32,12 @@ export function TorneoCard({ torneo }: { torneo: Torneo }) {
       </div>
       <p className="text-sm leading-relaxed text-muted-foreground text-left">{fecha}</p>
       <p className="text-sm leading-relaxed text-muted-foreground text-left">{torneo.lugar}</p>
+      <Link
+        to={`/torneos/${torneo.id}/categorias`}
+        className="mt-2 inline-flex min-h-11 items-center text-sm leading-relaxed font-medium text-secondary underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-3 focus-visible:outline-secondary"
+      >
+        Ver categorías →
+      </Link>
     </article>
   );
 }

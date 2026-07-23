@@ -27,6 +27,7 @@ public static class DependencyInjection
             .UseSnakeCaseNamingConvention());
 
         services.AddScoped<ITorneoRepository, TorneoRepository>();
+        services.AddScoped<ICategoriaRepository, CategoriaRepository>();
         services.AddScoped<IUsuarioRepository, UsuarioRepository>();
         services.AddSingleton<IPasswordHasher, PasswordHasher>();
         services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
