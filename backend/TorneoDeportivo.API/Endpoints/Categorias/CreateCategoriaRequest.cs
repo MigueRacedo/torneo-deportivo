@@ -9,9 +9,9 @@ public record CreateCategoriaRequest(
     string Nombre,
     string TipoCompetencia,
     string Sexo,
-    int RangoEdadMin,
-    int RangoEdadMax,
-    decimal RangoPesoMin,
-    decimal RangoPesoMax,
+    int? RangoEdadMin,
+    int? RangoEdadMax,
+    decimal? RangoPesoMin,
+    decimal? RangoPesoMax,
     string RangoGraduacionMin,
     string RangoGraduacionMax);

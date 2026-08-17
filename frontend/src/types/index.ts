@@ -66,10 +66,12 @@ export interface Categoria {
   nombre: string;
   tipoCompetencia: TipoCompetencia;
   sexo: Sexo;
-  rangoEdadMin: number;
-  rangoEdadMax: number;
-  rangoPesoMin: number;
-  rangoPesoMax: number;
+  // Rangos abiertos: null/undefined = sin ese extremo ("hasta X" o "X en adelante").
+  // El peso queda null cuando la categoría es de Formas.
+  rangoEdadMin?: number | null;
+  rangoEdadMax?: number | null;
+  rangoPesoMin?: number | null;
+  rangoPesoMax?: number | null;
   rangoGraduacionMin: string;
   rangoGraduacionMax: string;
 }
@@ -78,10 +80,10 @@ export interface CreateCategoriaInput {
   nombre: string;
   tipoCompetencia: TipoCompetencia;
   sexo: Sexo;
-  rangoEdadMin: number;
-  rangoEdadMax: number;
-  rangoPesoMin: number;
-  rangoPesoMax: number;
+  rangoEdadMin?: number;
+  rangoEdadMax?: number;
+  rangoPesoMin?: number;
+  rangoPesoMax?: number;
   rangoGraduacionMin: string;
   rangoGraduacionMax: string;
 }

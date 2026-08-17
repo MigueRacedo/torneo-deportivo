@@ -9,8 +9,8 @@ public class CreateCategoriaCommandValidatorTests
 
     private static CreateCategoriaCommand Base(
         string tipo = "Combate", string sexo = "F",
-        int edadMin = 18, int edadMax = 35,
-        decimal pesoMin = 50m, decimal pesoMax = 55m,
+        int? edadMin = 18, int? edadMax = 35,
+        decimal? pesoMin = 50m, decimal? pesoMax = 55m,
         string nombre = "Adultos A",
         string gradMin = "CinturonAmarillo", string gradMax = "CinturonVerde") => new(
         Guid.NewGuid(), nombre, tipo, sexo,
@@ -78,5 +78,49 @@ public class CreateCategoriaCommandValidatorTests
         var result = _validator.Validate(Base(gradMin: "CinturonVerde", gradMax: "CinturonAmarillo"));
         Assert.False(result.IsValid);
         Assert.Contains(result.Errors, e => e.PropertyName == nameof(CreateCategoriaCommand.RangoGraduacionMax));
+    }
+
+    [Fact]
+    public void Validate_GraduacionMinIgualAMax_EsValido()
+    {
+        var result = _validator.Validate(Base(gradMin: "CinturonBlanco", gradMax: "CinturonBlanco"));
+        Assert.True(result.IsValid);
+    }
+
+    [Fact]
+    public void Validate_EdadMinIgualAMax_FallaConError()
+    {
+        var result = _validator.Validate(Base(edadMin: 18, edadMax: 18));
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Errors, e => e.PropertyName == nameof(CreateCategoriaCommand.RangoEdadMax));
+    }
+
+    [Fact]
+    public void Validate_PesoMinIgualAMax_FallaConError()
+    {
+        var result = _validator.Validate(Base(pesoMin: 50m, pesoMax: 50m));
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Errors, e => e.PropertyName == nameof(CreateCategoriaCommand.RangoPesoMax));
+    }
+
+    [Fact]
+    public void Validate_EdadSinMinimo_HastaSeis_EsValido()
+    {
+        var result = _validator.Validate(Base(edadMin: null, edadMax: 6));
+        Assert.True(result.IsValid);
+    }
+
+    [Fact]
+    public void Validate_EdadSinMaximo_TreintaYCincoEnAdelante_EsValido()
+    {
+        var result = _validator.Validate(Base(edadMin: 35, edadMax: null));
+        Assert.True(result.IsValid);
+    }
+
+    [Fact]
+    public void Validate_FormasSinPeso_EsValido()
+    {
+        var result = _validator.Validate(Base(tipo: "Formas", pesoMin: null, pesoMax: null));
+        Assert.True(result.IsValid);
     }
 }

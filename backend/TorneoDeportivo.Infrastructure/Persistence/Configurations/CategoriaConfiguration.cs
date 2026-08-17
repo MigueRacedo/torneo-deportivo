@@ -18,6 +18,8 @@ public class CategoriaConfiguration : IEntityTypeConfiguration<Categoria>
         builder.Property(c => c.Nombre).IsRequired().HasMaxLength(200);
         builder.Property(c => c.TipoCompetencia).HasConversion<string>();
         builder.Property(c => c.Sexo).HasConversion<string>();
+        builder.Property(c => c.RangoPesoMin).HasPrecision(5, 2);
+        builder.Property(c => c.RangoPesoMax).HasPrecision(5, 2);
         builder.Property(c => c.RangoGraduacionMin).IsRequired().HasMaxLength(50);
         builder.Property(c => c.RangoGraduacionMax).IsRequired().HasMaxLength(50);
         builder.HasMany(c => c.Competidores).WithOne(comp => comp.Categoria)

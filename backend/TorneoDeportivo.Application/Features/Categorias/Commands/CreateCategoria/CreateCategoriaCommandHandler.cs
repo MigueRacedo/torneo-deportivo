@@ -24,17 +24,21 @@ public class CreateCategoriaCommandHandler(
         var torneo = await torneoRepo.GetByIdAsync(request.TorneoId, ct)
             ?? throw new NotFoundException(nameof(Torneo), request.TorneoId);
 
+        var tipoCompetencia = Enum.Parse<TipoCompetencia>(request.TipoCompetencia);
+        // El peso solo aplica a Combate; en Formas se descarta cualquier valor recibido.
+        var esFormas = tipoCompetencia == TipoCompetencia.Formas;
+
         var categoria = new Categoria
         {
             Id = Guid.NewGuid(),
             TorneoId = torneo.Id,
             Nombre = request.Nombre,
-            TipoCompetencia = Enum.Parse<TipoCompetencia>(request.TipoCompetencia),
+            TipoCompetencia = tipoCompetencia,
             Sexo = Enum.Parse<Sexo>(request.Sexo),
             RangoEdadMin = request.RangoEdadMin,
             RangoEdadMax = request.RangoEdadMax,
-            RangoPesoMin = request.RangoPesoMin,
-            RangoPesoMax = request.RangoPesoMax,
+            RangoPesoMin = esFormas ? null : request.RangoPesoMin,
+            RangoPesoMax = esFormas ? null : request.RangoPesoMax,
             RangoGraduacionMin = request.RangoGraduacionMin,
             RangoGraduacionMax = request.RangoGraduacionMax
         };

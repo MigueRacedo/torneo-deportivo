@@ -10,10 +10,10 @@ namespace TorneoDeportivo.Application.Tests.Features.Categorias;
 
 public class CreateCategoriaCommandHandlerTests
 {
-    private static CreateCategoriaCommand CommandValido(Guid torneoId) => new(
+    private static CreateCategoriaCommand CommandValido(Guid torneoId, string tipo = "Combate") => new(
         torneoId,
         "Adultos A - Combate Femenino",
-        "Combate",
+        tipo,
         "F",
         18, 35,
         50m, 55m,
@@ -39,6 +39,26 @@ public class CreateCategoriaCommandHandlerTests
             Arg.Is<Categoria>(c => c.TorneoId == torneoId
                 && c.TipoCompetencia == TipoCompetencia.Combate
                 && c.Sexo == Sexo.F),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_TipoFormas_DescartaElPeso()
+    {
+        var torneoId = Guid.NewGuid();
+        var torneoRepo = Substitute.For<ITorneoRepository>();
+        torneoRepo.GetByIdAsync(torneoId, Arg.Any<CancellationToken>())
+            .Returns(new Torneo { Id = torneoId });
+        var categoriaRepo = Substitute.For<ICategoriaRepository>();
+        var handler = new CreateCategoriaCommandHandler(categoriaRepo, torneoRepo);
+
+        // Aunque el comando traiga peso, al ser Formas debe guardarse null.
+        var result = await handler.Handle(CommandValido(torneoId, tipo: "Formas"), CancellationToken.None);
+
+        Assert.Null(result.RangoPesoMin);
+        Assert.Null(result.RangoPesoMax);
+        await categoriaRepo.Received(1).AddAsync(
+            Arg.Is<Categoria>(c => c.RangoPesoMin == null && c.RangoPesoMax == null),
             Arg.Any<CancellationToken>());
     }
 

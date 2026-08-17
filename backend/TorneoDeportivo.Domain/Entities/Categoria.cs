@@ -13,10 +13,12 @@ public class Categoria
     public string Nombre { get; set; } = string.Empty;
     public TipoCompetencia TipoCompetencia { get; set; }
     public Sexo Sexo { get; set; }
-    public int RangoEdadMin { get; set; }
-    public int RangoEdadMax { get; set; }
-    public decimal RangoPesoMin { get; set; }
-    public decimal RangoPesoMax { get; set; }
+    // Rangos abiertos: null en el mínimo = "hasta X"; null en el máximo = "X en adelante".
+    public int? RangoEdadMin { get; set; }
+    public int? RangoEdadMax { get; set; }
+    // Peso solo aplica a Combate; en Formas queda null.
+    public decimal? RangoPesoMin { get; set; }
+    public decimal? RangoPesoMax { get; set; }
     public string RangoGraduacionMin { get; set; } = string.Empty;
     public string RangoGraduacionMax { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
