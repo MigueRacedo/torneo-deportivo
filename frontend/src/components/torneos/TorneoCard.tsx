@@ -42,6 +42,14 @@ export function TorneoCard({ torneo }: { torneo: Torneo }) {
         >
           Ver categorías →
         </Link>
+        {esCoordinador && (
+          <Link
+            to={`/torneos/${torneo.id}/competidores`}
+            className="inline-flex min-h-11 items-center text-sm leading-relaxed font-medium text-secondary underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-3 focus-visible:outline-secondary"
+          >
+            Competidores →
+          </Link>
+        )}
         {puedeEditar && (
           <Link
             to={`/torneos/${torneo.id}/editar`}

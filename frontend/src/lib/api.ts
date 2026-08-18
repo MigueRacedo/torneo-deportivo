@@ -1,7 +1,9 @@
 import { useAuthStore } from '@/store/authStore';
 import type {
   Categoria,
+  Competidor,
   CreateCategoriaInput,
+  CreateCompetidorInput,
   CreateTorneoInput,
   LoginInput,
   LoginResult,
@@ -93,6 +95,15 @@ export const api = {
     editar: (torneoId: string, id: string, data: CreateCategoriaInput) =>
       apiFetch<Categoria>(`/api/v1/torneos/${torneoId}/categorias/${id}`, {
         method: 'PUT',
+        body: JSON.stringify(data),
+      }),
+  },
+  competidores: {
+    listar: (torneoId: string) =>
+      apiFetch<Competidor[]>(`/api/v1/torneos/${torneoId}/competidores`),
+    cargar: (torneoId: string, data: CreateCompetidorInput) =>
+      apiFetch<Competidor>(`/api/v1/torneos/${torneoId}/competidores`, {
+        method: 'POST',
         body: JSON.stringify(data),
       }),
   },

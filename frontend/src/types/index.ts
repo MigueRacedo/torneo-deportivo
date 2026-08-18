@@ -89,3 +89,33 @@ export interface CreateCategoriaInput {
   rangoGraduacionMin: string;
   rangoGraduacionMax: string;
 }
+
+export interface Competidor {
+  id: string;
+  torneoId: string;
+  categoriaId: string;
+  categoriaNombre?: string;
+  nombre: string;
+  apellido: string;
+  nombreCompleto: string;
+  edad: number;
+  graduacion: string;
+  peso: number;
+  altura: number;
+  escuela: string;
+  responsable: string;
+  telefono?: string;
+}
+
+export interface CreateCompetidorInput {
+  categoriaId: string;
+  nombre: string;
+  apellido: string;
+  edad: number;
+  graduacion: string;
+  peso: number;
+  altura: number;
+  escuela: string;
+  responsable: string;
+  telefono?: string;
+}
