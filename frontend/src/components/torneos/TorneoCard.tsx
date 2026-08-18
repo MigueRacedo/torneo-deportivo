@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { useAuthStore } from '@/store/authStore';
 import type { Torneo, TorneoEstado } from '@/types';
 
 const ESTADO_LABEL: Record<TorneoEstado, string> = {
@@ -14,6 +15,8 @@ const ESTADO_CLASES: Record<TorneoEstado, string> = {
 };
 
 export function TorneoCard({ torneo }: { torneo: Torneo }) {
+  const esCoordinador = useAuthStore((state) => state.usuario?.rol === 'Coordinador');
+  const puedeEditar = esCoordinador && torneo.estado !== 'Finalizado';
   const fecha = new Date(`${torneo.fecha}T00:00:00`).toLocaleDateString('es-AR', {
     day: '2-digit',
     month: 'long',
@@ -32,12 +35,22 @@ export function TorneoCard({ torneo }: { torneo: Torneo }) {
       </div>
       <p className="text-sm leading-relaxed text-muted-foreground text-left">{fecha}</p>
       <p className="text-sm leading-relaxed text-muted-foreground text-left">{torneo.lugar}</p>
-      <Link
-        to={`/torneos/${torneo.id}/categorias`}
-        className="mt-2 inline-flex min-h-11 items-center text-sm leading-relaxed font-medium text-secondary underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-3 focus-visible:outline-secondary"
-      >
-        Ver categorías →
-      </Link>
+      <div className="mt-2 flex flex-wrap items-center gap-4">
+        <Link
+          to={`/torneos/${torneo.id}/categorias`}
+          className="inline-flex min-h-11 items-center text-sm leading-relaxed font-medium text-secondary underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-3 focus-visible:outline-secondary"
+        >
+          Ver categorías →
+        </Link>
+        {puedeEditar && (
+          <Link
+            to={`/torneos/${torneo.id}/editar`}
+            className="inline-flex min-h-11 items-center text-sm leading-relaxed font-medium text-secondary underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-3 focus-visible:outline-secondary"
+          >
+            Editar
+          </Link>
+        )}
+      </div>
     </article>
   );
 }

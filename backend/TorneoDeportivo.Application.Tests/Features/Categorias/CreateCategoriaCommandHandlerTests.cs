@@ -74,4 +74,19 @@ public class CreateCategoriaCommandHandlerTests
             () => handler.Handle(CommandValido(Guid.NewGuid()), CancellationToken.None));
         await categoriaRepo.DidNotReceive().AddAsync(Arg.Any<Categoria>(), Arg.Any<CancellationToken>());
     }
+
+    [Fact]
+    public async Task Handle_TorneoFinalizado_LanzaConflictException()
+    {
+        var torneoId = Guid.NewGuid();
+        var torneoRepo = Substitute.For<ITorneoRepository>();
+        torneoRepo.GetByIdAsync(torneoId, Arg.Any<CancellationToken>())
+            .Returns(new Torneo { Id = torneoId, Estado = EstadoTorneo.Finalizado });
+        var categoriaRepo = Substitute.For<ICategoriaRepository>();
+        var handler = new CreateCategoriaCommandHandler(categoriaRepo, torneoRepo);
+
+        await Assert.ThrowsAsync<ConflictException>(
+            () => handler.Handle(CommandValido(torneoId), CancellationToken.None));
+        await categoriaRepo.DidNotReceive().AddAsync(Arg.Any<Categoria>(), Arg.Any<CancellationToken>());
+    }
 }

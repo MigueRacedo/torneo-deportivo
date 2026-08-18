@@ -6,8 +6,9 @@ import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useCrearTorneo } from '@/hooks/useTorneos';
+import { useCrearTorneo, useEditarTorneo } from '@/hooks/useTorneos';
 import { ApiError } from '@/lib/api';
+import type { Torneo } from '@/types';
 
 const hoyIso = new Date().toISOString().slice(0, 10);
 
@@ -31,26 +32,44 @@ const torneoSchema = z.object({
 
 type TorneoFormValues = z.infer<typeof torneoSchema>;
 
-export function TorneoForm() {
+/**
+ * Formulario de torneo reutilizable. Sin `torneo` crea uno nuevo (H0001); con `torneo`
+ * precarga los datos y edita el existente (H0003).
+ */
+export function TorneoForm({ torneo }: { torneo?: Torneo }) {
   const navigate = useNavigate();
-  const { mutate, isPending } = useCrearTorneo();
+  const esEdicion = Boolean(torneo);
+
+  const crear = useCrearTorneo();
+  const editar = useEditarTorneo(torneo?.id ?? '');
+  const { mutate, isPending } = esEdicion ? editar : crear;
+
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<TorneoFormValues>({ resolver: zodResolver(torneoSchema) });
+  } = useForm<TorneoFormValues>({
+    resolver: zodResolver(torneoSchema),
+    defaultValues: torneo
+      ? { nombre: torneo.nombre, fecha: torneo.fecha, lugar: torneo.lugar, imagenFlyer: torneo.imagenFlyer ?? '' }
+      : undefined,
+  });
 
   const onSubmit = (values: TorneoFormValues) => {
     mutate(
       { ...values, imagenFlyer: values.imagenFlyer || undefined },
       {
-        onSuccess: (torneo) => {
-          toast.success(`Torneo "${torneo.nombre}" creado correctamente.`);
+        onSuccess: (guardado) => {
+          toast.success(
+            esEdicion
+              ? `Torneo "${guardado.nombre}" actualizado correctamente.`
+              : `Torneo "${guardado.nombre}" creado correctamente.`,
+          );
           navigate('/torneos');
         },
         onError: (error) => {
-          const message = error instanceof ApiError ? error.message : 'No se pudo crear el torneo.';
-          toast.error(message);
+          const fallback = esEdicion ? 'No se pudo actualizar el torneo.' : 'No se pudo crear el torneo.';
+          toast.error(error instanceof ApiError ? error.message : fallback);
         },
       },
     );
@@ -111,16 +130,17 @@ export function TorneoForm() {
 
       <div className="flex flex-col gap-2">
         <Label htmlFor="imagenFlyer">Flyer del torneo (URL, opcional)</Label>
-        <Input
-          id="imagenFlyer"
-          className="min-h-11"
-          placeholder="https://..."
-          {...register('imagenFlyer')}
-        />
+        <Input id="imagenFlyer" className="min-h-11" placeholder="https://..." {...register('imagenFlyer')} />
       </div>
 
       <Button type="submit" disabled={isPending} className="min-h-11 self-start px-6">
-        {isPending ? 'Creando torneo…' : 'Crear torneo'}
+        {isPending
+          ? esEdicion
+            ? 'Guardando cambios…'
+            : 'Creando torneo…'
+          : esEdicion
+            ? 'Guardar cambios'
+            : 'Crear torneo'}
       </Button>
     </form>
   );

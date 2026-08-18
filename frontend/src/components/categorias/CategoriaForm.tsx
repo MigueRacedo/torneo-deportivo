@@ -1,14 +1,15 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useCrearCategoria } from '@/hooks/useCategorias';
+import { useCrearCategoria, useEditarCategoria } from '@/hooks/useCategorias';
 import { ApiError } from '@/lib/api';
-import { GRADUACIONES } from '@/types';
+import { GRADUACIONES, type Categoria } from '@/types';
 import { formatearGraduacion } from './graduacion';
 
 // Estilo compartido para los <select> nativos (coincide con el <Input> de shadcn).
@@ -64,8 +65,33 @@ const categoriaSchema = z
 
 type CategoriaFormValues = z.infer<typeof categoriaSchema>;
 
-export function CategoriaForm({ torneoId }: { torneoId: string }) {
-  const { mutate, isPending } = useCrearCategoria(torneoId);
+// Valores iniciales del formulario a partir de una categoría existente (modo edición).
+function valoresDesdeCategoria(categoria: Categoria): CategoriaFormValues {
+  return {
+    nombre: categoria.nombre,
+    tipoCompetencia: categoria.tipoCompetencia,
+    sexo: categoria.sexo,
+    rangoEdadMin: categoria.rangoEdadMin ?? undefined,
+    rangoEdadMax: categoria.rangoEdadMax ?? undefined,
+    rangoPesoMin: categoria.rangoPesoMin ?? undefined,
+    rangoPesoMax: categoria.rangoPesoMax ?? undefined,
+    rangoGraduacionMin: categoria.rangoGraduacionMin as CategoriaFormValues['rangoGraduacionMin'],
+    rangoGraduacionMax: categoria.rangoGraduacionMax as CategoriaFormValues['rangoGraduacionMax'],
+  };
+}
+
+/**
+ * Formulario de categoría reutilizable. Sin `categoria` crea una nueva; con `categoria`
+ * precarga los datos y edita la existente.
+ */
+export function CategoriaForm({ torneoId, categoria }: { torneoId: string; categoria?: Categoria }) {
+  const navigate = useNavigate();
+  const esEdicion = Boolean(categoria);
+
+  const crear = useCrearCategoria(torneoId);
+  const editar = useEditarCategoria(torneoId, categoria?.id ?? '');
+  const { mutate, isPending } = esEdicion ? editar : crear;
+
   const {
     register,
     handleSubmit,
@@ -75,12 +101,14 @@ export function CategoriaForm({ torneoId }: { torneoId: string }) {
     formState: { errors },
   } = useForm<CategoriaFormValues>({
     resolver: zodResolver(categoriaSchema),
-    defaultValues: {
-      tipoCompetencia: 'Combate',
-      sexo: 'M',
-      rangoGraduacionMin: 'CinturonBlanco',
-      rangoGraduacionMax: 'CinturonBlanco',
-    },
+    defaultValues: categoria
+      ? valoresDesdeCategoria(categoria)
+      : {
+          tipoCompetencia: 'Combate',
+          sexo: 'M',
+          rangoGraduacionMin: 'CinturonBlanco',
+          rangoGraduacionMax: 'CinturonBlanco',
+        },
   });
 
   const esFormas = watch('tipoCompetencia') === 'Formas';
@@ -102,13 +130,18 @@ export function CategoriaForm({ torneoId }: { torneoId: string }) {
       rangoPesoMax: esFormas ? undefined : values.rangoPesoMax,
     };
     mutate(payload, {
-      onSuccess: (categoria) => {
-        toast.success(`Categoría "${categoria.nombre}" creada correctamente.`);
-        reset();
+      onSuccess: (guardada) => {
+        if (esEdicion) {
+          toast.success(`Categoría "${guardada.nombre}" actualizada correctamente.`);
+          navigate(`/torneos/${torneoId}/categorias`);
+        } else {
+          toast.success(`Categoría "${guardada.nombre}" creada correctamente.`);
+          reset();
+        }
       },
       onError: (error) => {
-        const message = error instanceof ApiError ? error.message : 'No se pudo crear la categoría.';
-        toast.error(message);
+        const fallback = esEdicion ? 'No se pudo actualizar la categoría.' : 'No se pudo crear la categoría.';
+        toast.error(error instanceof ApiError ? error.message : fallback);
       },
     });
   };
@@ -287,7 +320,13 @@ export function CategoriaForm({ torneoId }: { torneoId: string }) {
       </fieldset>
 
       <Button type="submit" disabled={isPending} className="min-h-11 self-start px-6">
-        {isPending ? 'Creando categoría…' : 'Crear categoría'}
+        {isPending
+          ? esEdicion
+            ? 'Guardando cambios…'
+            : 'Creando categoría…'
+          : esEdicion
+            ? 'Guardar cambios'
+            : 'Crear categoría'}
       </Button>
     </form>
   );

@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
+import type { UpdateTorneoInput } from '@/types';
 
 export const torneoKeys = {
   all: ['torneos'] as const,
@@ -26,5 +27,16 @@ export function useCrearTorneo() {
   return useMutation({
     mutationFn: api.torneos.crear,
     onSuccess: () => qc.invalidateQueries({ queryKey: torneoKeys.all }),
+  });
+}
+
+export function useEditarTorneo(id: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: UpdateTorneoInput) => api.torneos.editar(id, data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: torneoKeys.all });
+      qc.invalidateQueries({ queryKey: torneoKeys.detail(id) });
+    },
   });
 }

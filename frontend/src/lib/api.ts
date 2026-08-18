@@ -6,6 +6,7 @@ import type {
   LoginInput,
   LoginResult,
   Torneo,
+  UpdateTorneoInput,
 } from '@/types';
 
 const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:5000';
@@ -78,6 +79,8 @@ export const api = {
     obtener: (id: string) => apiFetch<Torneo>(`/api/v1/torneos/${id}`),
     crear: (data: CreateTorneoInput) =>
       apiFetch<Torneo>('/api/v1/torneos', { method: 'POST', body: JSON.stringify(data) }),
+    editar: (id: string, data: UpdateTorneoInput) =>
+      apiFetch<Torneo>(`/api/v1/torneos/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   },
   categorias: {
     listar: (torneoId: string) =>
@@ -85,6 +88,11 @@ export const api = {
     crear: (torneoId: string, data: CreateCategoriaInput) =>
       apiFetch<Categoria>(`/api/v1/torneos/${torneoId}/categorias`, {
         method: 'POST',
+        body: JSON.stringify(data),
+      }),
+    editar: (torneoId: string, id: string, data: CreateCategoriaInput) =>
+      apiFetch<Categoria>(`/api/v1/torneos/${torneoId}/categorias/${id}`, {
+        method: 'PUT',
         body: JSON.stringify(data),
       }),
   },

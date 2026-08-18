@@ -35,6 +35,8 @@ export interface CreateTorneoInput {
   imagenFlyer?: string;
 }
 
+export type UpdateTorneoInput = CreateTorneoInput;
+
 export type TipoCompetencia = 'Combate' | 'Formas';
 export type Sexo = 'M' | 'F';
 

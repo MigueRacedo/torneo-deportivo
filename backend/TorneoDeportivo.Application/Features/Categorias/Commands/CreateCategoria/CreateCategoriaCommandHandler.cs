@@ -24,6 +24,9 @@ public class CreateCategoriaCommandHandler(
         var torneo = await torneoRepo.GetByIdAsync(request.TorneoId, ct)
             ?? throw new NotFoundException(nameof(Torneo), request.TorneoId);
 
+        if (torneo.Estado == EstadoTorneo.Finalizado)
+            throw new ConflictException("No se pueden agregar categorías a un torneo finalizado.");
+
         var tipoCompetencia = Enum.Parse<TipoCompetencia>(request.TipoCompetencia);
         // El peso solo aplica a Combate; en Formas se descarta cualquier valor recibido.
         var esFormas = tipoCompetencia == TipoCompetencia.Formas;

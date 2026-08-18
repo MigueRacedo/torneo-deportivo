@@ -5,12 +5,12 @@ using TorneoDeportivo.Application.Features.Categorias;
 namespace TorneoDeportivo.API.Endpoints.Categorias;
 
 /// <summary>
-/// Valida el <see cref="CreateCategoriaRequest"/> aplicando las reglas comunes de categoría
+/// Valida el <see cref="UpdateCategoriaRequest"/> aplicando las reglas comunes de categoría
 /// (nombre, enums, rangos abiertos con mín &lt; máx, graduaciones válidas).
 /// </summary>
-public class CreateCategoriaRequestValidator : Validator<CreateCategoriaRequest>
+public class UpdateCategoriaRequestValidator : Validator<UpdateCategoriaRequest>
 {
-    public CreateCategoriaRequestValidator()
+    public UpdateCategoriaRequestValidator()
     {
         this.AddCategoriaRules();
     }
