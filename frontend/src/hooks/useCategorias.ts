@@ -34,3 +34,12 @@ export function useEditarCategoria(torneoId: string, categoriaId: string) {
     onSuccess: () => qc.invalidateQueries({ queryKey: categoriaKeys.byTorneo(torneoId) }),
   });
 }
+
+/** Elimina una categoría del torneo e invalida la lista al terminar. */
+export function useEliminarCategoria(torneoId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (categoriaId: string) => api.categorias.eliminar(torneoId, categoriaId),
+    onSuccess: () => qc.invalidateQueries({ queryKey: categoriaKeys.byTorneo(torneoId) }),
+  });
+}

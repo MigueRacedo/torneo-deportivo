@@ -1,4 +1,8 @@
 import { Link } from 'react-router-dom';
+import { toast } from 'sonner';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { useEliminarCategoria } from '@/hooks/useCategorias';
+import { ApiError } from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
 import type { Categoria } from '@/types';
 import { formatearGraduacion } from './graduacion';
@@ -34,8 +38,15 @@ function textoGraduacion(min: string, max: string): string {
 
 export function CategoriaCard({ categoria }: { categoria: Categoria }) {
   const esCoordinador = useAuthStore((state) => state.usuario?.rol === 'Coordinador');
+  const eliminar = useEliminarCategoria(categoria.torneoId);
   const edad = textoRango(categoria.rangoEdadMin, categoria.rangoEdadMax, 'años') ?? 'Todas las edades';
   const peso = textoRango(categoria.rangoPesoMin, categoria.rangoPesoMax, 'kg');
+
+  const onEliminar = () =>
+    eliminar.mutate(categoria.id, {
+      onSuccess: () => toast.success(`Categoría "${categoria.nombre}" eliminada.`),
+      onError: (err) => toast.error(err instanceof ApiError ? err.message : 'No se pudo eliminar la categoría.'),
+    });
 
   return (
     <article className="flex flex-col gap-2 rounded-lg border bg-card p-4 shadow-sm">
@@ -70,12 +81,20 @@ export function CategoriaCard({ categoria }: { categoria: Categoria }) {
       </dl>
 
       {esCoordinador && (
-        <Link
-          to={`/torneos/${categoria.torneoId}/categorias/${categoria.id}/editar`}
-          className="inline-flex min-h-11 items-center self-start text-sm leading-relaxed font-medium text-secondary underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-3 focus-visible:outline-secondary"
-        >
-          Editar
-        </Link>
+        <div className="flex flex-wrap items-center gap-4 text-sm leading-relaxed">
+          <Link
+            to={`/torneos/${categoria.torneoId}/categorias/${categoria.id}/editar`}
+            className="inline-flex min-h-11 items-center font-medium text-secondary underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-3 focus-visible:outline-secondary"
+          >
+            Editar
+          </Link>
+          <ConfirmDialog
+            trigger="Eliminar"
+            title="Eliminar categoría"
+            description={`¿Seguro que querés eliminar la categoría "${categoria.nombre}"? Los competidores que tuviera asignados quedarán sin categoría. Esta acción no se puede deshacer.`}
+            onConfirm={onEliminar}
+          />
+        </div>
       )}
     </article>
   );

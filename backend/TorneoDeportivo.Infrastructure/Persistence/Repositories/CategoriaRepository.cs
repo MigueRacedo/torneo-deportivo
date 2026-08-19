@@ -33,4 +33,11 @@ public class CategoriaRepository(TorneoDbContext db) : ICategoriaRepository
         db.Categorias.Update(categoria);
         await db.SaveChangesAsync(ct);
     }
+
+    /// <summary>Elimina una categoría y guarda los cambios.</summary>
+    public async Task DeleteAsync(Categoria categoria, CancellationToken ct)
+    {
+        db.Categorias.Remove(categoria);
+        await db.SaveChangesAsync(ct);
+    }
 }

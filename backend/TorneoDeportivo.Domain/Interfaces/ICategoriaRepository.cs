@@ -18,4 +18,7 @@ public interface ICategoriaRepository
 
     /// <summary>Actualiza una categoría existente.</summary>
     Task UpdateAsync(Categoria categoria, CancellationToken ct);
+
+    /// <summary>Elimina una categoría.</summary>
+    Task DeleteAsync(Categoria categoria, CancellationToken ct);
 }
