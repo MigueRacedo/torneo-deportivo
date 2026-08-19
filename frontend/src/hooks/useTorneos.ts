@@ -40,3 +40,11 @@ export function useEditarTorneo(id: string) {
     },
   });
 }
+
+export function useEliminarTorneo() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.torneos.eliminar(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: torneoKeys.all }),
+  });
+}

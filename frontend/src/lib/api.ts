@@ -84,6 +84,7 @@ export const api = {
       apiFetch<Torneo>('/api/v1/torneos', { method: 'POST', body: JSON.stringify(data) }),
     editar: (id: string, data: UpdateTorneoInput) =>
       apiFetch<Torneo>(`/api/v1/torneos/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    eliminar: (id: string) => apiFetch<void>(`/api/v1/torneos/${id}`, { method: 'DELETE' }),
   },
   categorias: {
     listar: (torneoId: string) =>

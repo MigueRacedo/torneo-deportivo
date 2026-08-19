@@ -16,8 +16,10 @@ interface ConfirmDialogProps {
   triggerClassName?: string;
 }
 
+// Atenuado en reposo y rojo (destructivo) al interactuar: evita inundar de rojo las vistas densas
+// (regla 60-30-10) sin perder la señal destructiva en hover/focus.
 const defaultTriggerClass =
-  'inline-flex min-h-11 items-center font-medium text-destructive underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-3 focus-visible:outline-destructive';
+  'inline-flex min-h-11 items-center font-medium text-muted-foreground underline-offset-4 hover:text-destructive hover:underline focus-visible:text-destructive focus-visible:outline focus-visible:outline-3 focus-visible:outline-destructive';
 
 /**
  * Diálogo de confirmación reutilizable para acciones irreversibles (WCAG 2.2: confirmación previa).

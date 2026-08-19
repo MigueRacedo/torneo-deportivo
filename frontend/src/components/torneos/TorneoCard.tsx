@@ -1,4 +1,8 @@
 import { Link } from 'react-router-dom';
+import { toast } from 'sonner';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { useEliminarTorneo } from '@/hooks/useTorneos';
+import { ApiError } from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
 import type { Torneo, TorneoEstado } from '@/types';
 
@@ -17,11 +21,19 @@ const ESTADO_CLASES: Record<TorneoEstado, string> = {
 export function TorneoCard({ torneo }: { torneo: Torneo }) {
   const esCoordinador = useAuthStore((state) => state.usuario?.rol === 'Coordinador');
   const puedeEditar = esCoordinador && torneo.estado !== 'Finalizado';
+  const puedeEliminar = esCoordinador && torneo.estado === 'Borrador';
+  const eliminar = useEliminarTorneo();
   const fecha = new Date(`${torneo.fecha}T00:00:00`).toLocaleDateString('es-AR', {
     day: '2-digit',
     month: 'long',
     year: 'numeric',
   });
+
+  const onEliminar = () =>
+    eliminar.mutate(torneo.id, {
+      onSuccess: () => toast.success(`Torneo "${torneo.nombre}" eliminado.`),
+      onError: (err) => toast.error(err instanceof ApiError ? err.message : 'No se pudo eliminar el torneo.'),
+    });
 
   return (
     <article className="flex flex-col gap-2 rounded-lg border bg-card p-4 shadow-sm">
@@ -57,6 +69,15 @@ export function TorneoCard({ torneo }: { torneo: Torneo }) {
           >
             Editar
           </Link>
+        )}
+        {puedeEliminar && (
+          <ConfirmDialog
+            trigger="Eliminar"
+            triggerClassName="inline-flex min-h-11 items-center text-sm leading-relaxed font-medium text-muted-foreground underline-offset-4 hover:text-destructive hover:underline focus-visible:text-destructive focus-visible:outline focus-visible:outline-3 focus-visible:outline-destructive"
+            title="Eliminar torneo"
+            description={`¿Seguro que querés eliminar el torneo "${torneo.nombre}"? Se eliminarán también sus categorías y competidores. Esta acción no se puede deshacer.`}
+            onConfirm={onEliminar}
+          />
         )}
       </div>
     </article>
