@@ -34,3 +34,12 @@ export function useEditarCompetidor(torneoId: string, competidorId: string) {
     onSuccess: () => qc.invalidateQueries({ queryKey: competidorKeys.byTorneo(torneoId) }),
   });
 }
+
+/** Elimina un competidor del torneo e invalida la lista al terminar. */
+export function useEliminarCompetidor(torneoId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (competidorId: string) => api.competidores.eliminar(torneoId, competidorId),
+    onSuccess: () => qc.invalidateQueries({ queryKey: competidorKeys.byTorneo(torneoId) }),
+  });
+}

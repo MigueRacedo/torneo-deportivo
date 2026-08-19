@@ -112,5 +112,7 @@ export const api = {
         method: 'PUT',
         body: JSON.stringify(data),
       }),
+    eliminar: (torneoId: string, id: string) =>
+      apiFetch<void>(`/api/v1/torneos/${torneoId}/competidores/${id}`, { method: 'DELETE' }),
   },
 };

@@ -1,7 +1,10 @@
 import { Link } from 'react-router-dom';
+import { toast } from 'sonner';
 import { formatearGraduacion } from '@/components/categorias/graduacion';
-import { useCompetidores } from '@/hooks/useCompetidores';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { useCompetidores, useEliminarCompetidor } from '@/hooks/useCompetidores';
 import { ApiError } from '@/lib/api';
+import type { Competidor } from '@/types';
 
 function CompetidorListSkeleton() {
   return (
@@ -16,6 +19,14 @@ function CompetidorListSkeleton() {
 /** Tabla de competidores del torneo; maneja estados de carga, error y lista vacía. */
 export function CompetidorList({ torneoId }: { torneoId: string }) {
   const { data: competidores, isLoading, error } = useCompetidores(torneoId);
+  const eliminar = useEliminarCompetidor(torneoId);
+
+  const onEliminar = (c: Competidor) =>
+    eliminar.mutate(c.id, {
+      onSuccess: () => toast.success(`Competidor "${c.apellido}, ${c.nombre}" eliminado.`),
+      onError: (err) =>
+        toast.error(err instanceof ApiError ? err.message : 'No se pudo eliminar el competidor.'),
+    });
 
   if (isLoading) return <CompetidorListSkeleton />;
 
@@ -71,12 +82,20 @@ export function CompetidorList({ torneoId }: { torneoId: string }) {
                 {c.telefono ? ` · ${c.telefono}` : ''}
               </td>
               <td className="px-4 py-2">
-                <Link
-                  to={`/torneos/${c.torneoId}/competidores/${c.id}/editar`}
-                  className="inline-flex min-h-11 items-center font-medium text-secondary underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-3 focus-visible:outline-secondary"
-                >
-                  Editar
-                </Link>
+                <div className="flex items-center gap-4">
+                  <Link
+                    to={`/torneos/${c.torneoId}/competidores/${c.id}/editar`}
+                    className="inline-flex min-h-11 items-center font-medium text-secondary underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-3 focus-visible:outline-secondary"
+                  >
+                    Editar
+                  </Link>
+                  <ConfirmDialog
+                    trigger="Eliminar"
+                    title="Eliminar competidor"
+                    description={`¿Seguro que querés eliminar a "${c.apellido}, ${c.nombre}"? Esta acción no se puede deshacer.`}
+                    onConfirm={() => onEliminar(c)}
+                  />
+                </div>
               </td>
             </tr>
           ))}
