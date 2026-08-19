@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
-import type { CreateCompetidorInput } from '@/types';
+import type { CreateCompetidorInput, UpdateCompetidorInput } from '@/types';
 
 // Query keys centralizadas por torneo.
 export const competidorKeys = {
@@ -22,6 +22,15 @@ export function useCargarCompetidor(torneoId: string) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (data: CreateCompetidorInput) => api.competidores.cargar(torneoId, data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: competidorKeys.byTorneo(torneoId) }),
+  });
+}
+
+/** Edita un competidor del torneo e invalida la lista al terminar. */
+export function useEditarCompetidor(torneoId: string, competidorId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: UpdateCompetidorInput) => api.competidores.editar(torneoId, competidorId, data),
     onSuccess: () => qc.invalidateQueries({ queryKey: competidorKeys.byTorneo(torneoId) }),
   });
 }

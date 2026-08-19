@@ -18,4 +18,7 @@ public interface ICompetidorRepository
 
     /// <summary>Persiste un nuevo competidor.</summary>
     Task AddAsync(Competidor competidor, CancellationToken ct);
+
+    /// <summary>Actualiza un competidor existente.</summary>
+    Task UpdateAsync(Competidor competidor, CancellationToken ct);
 }

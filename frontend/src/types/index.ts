@@ -121,3 +121,5 @@ export interface CreateCompetidorInput {
   responsable: string;
   telefono?: string;
 }
+
+export type UpdateCompetidorInput = CreateCompetidorInput;

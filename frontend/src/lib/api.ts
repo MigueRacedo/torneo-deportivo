@@ -8,6 +8,7 @@ import type {
   LoginInput,
   LoginResult,
   Torneo,
+  UpdateCompetidorInput,
   UpdateTorneoInput,
 } from '@/types';
 
@@ -104,6 +105,11 @@ export const api = {
     cargar: (torneoId: string, data: CreateCompetidorInput) =>
       apiFetch<Competidor>(`/api/v1/torneos/${torneoId}/competidores`, {
         method: 'POST',
+        body: JSON.stringify(data),
+      }),
+    editar: (torneoId: string, id: string, data: UpdateCompetidorInput) =>
+      apiFetch<Competidor>(`/api/v1/torneos/${torneoId}/competidores/${id}`, {
+        method: 'PUT',
         body: JSON.stringify(data),
       }),
   },

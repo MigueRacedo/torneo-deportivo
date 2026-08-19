@@ -35,4 +35,11 @@ public class CompetidorRepository(TorneoDbContext db) : ICompetidorRepository
         db.Competidores.Add(competidor);
         await db.SaveChangesAsync(ct);
     }
+
+    /// <summary>Actualiza un competidor existente y guarda los cambios.</summary>
+    public async Task UpdateAsync(Competidor competidor, CancellationToken ct)
+    {
+        db.Competidores.Update(competidor);
+        await db.SaveChangesAsync(ct);
+    }
 }

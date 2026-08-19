@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { formatearGraduacion } from '@/components/categorias/graduacion';
 import { useCompetidores } from '@/hooks/useCompetidores';
 import { ApiError } from '@/lib/api';
@@ -49,6 +50,7 @@ export function CompetidorList({ torneoId }: { torneoId: string }) {
             <th scope="col" className="px-4 py-2 font-semibold">Graduación</th>
             <th scope="col" className="px-4 py-2 font-semibold">Peso / Altura</th>
             <th scope="col" className="px-4 py-2 font-semibold">Responsable</th>
+            <th scope="col" className="px-4 py-2 font-semibold">Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -67,6 +69,14 @@ export function CompetidorList({ torneoId }: { torneoId: string }) {
               <td className="px-4 py-2">
                 {c.responsable}
                 {c.telefono ? ` · ${c.telefono}` : ''}
+              </td>
+              <td className="px-4 py-2">
+                <Link
+                  to={`/torneos/${c.torneoId}/competidores/${c.id}/editar`}
+                  className="inline-flex min-h-11 items-center font-medium text-secondary underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-3 focus-visible:outline-secondary"
+                >
+                  Editar
+                </Link>
               </td>
             </tr>
           ))}

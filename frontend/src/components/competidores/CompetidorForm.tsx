@@ -1,14 +1,15 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import { formatearGraduacion } from '@/components/categorias/graduacion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useCargarCompetidor } from '@/hooks/useCompetidores';
+import { useCargarCompetidor, useEditarCompetidor } from '@/hooks/useCompetidores';
 import { ApiError } from '@/lib/api';
-import { GRADUACIONES } from '@/types';
+import { GRADUACIONES, type Competidor } from '@/types';
 
 // Estilo compartido para los <select> nativos (coincide con el <Input> de shadcn).
 const selectClass =
@@ -39,8 +40,34 @@ const competidorSchema = z.object({
 
 type CompetidorFormValues = z.infer<typeof competidorSchema>;
 
-export function CompetidorForm({ torneoId }: { torneoId: string }) {
-  const { mutate, isPending } = useCargarCompetidor(torneoId);
+// Valores iniciales del formulario a partir de un competidor existente (modo edición).
+function valoresDesdeCompetidor(c: Competidor): CompetidorFormValues {
+  return {
+    nombre: c.nombre,
+    apellido: c.apellido,
+    sexo: c.sexo,
+    edad: c.edad,
+    graduacion: c.graduacion as CompetidorFormValues['graduacion'],
+    peso: c.peso,
+    altura: c.altura,
+    escuela: c.escuela,
+    responsable: c.responsable,
+    telefono: c.telefono ?? '',
+  };
+}
+
+/**
+ * Formulario de competidor reutilizable. Sin `competidor` carga uno nuevo (H0004); con `competidor`
+ * precarga los datos y edita el existente.
+ */
+export function CompetidorForm({ torneoId, competidor }: { torneoId: string; competidor?: Competidor }) {
+  const navigate = useNavigate();
+  const esEdicion = Boolean(competidor);
+
+  const cargar = useCargarCompetidor(torneoId);
+  const editar = useEditarCompetidor(torneoId, competidor?.id ?? '');
+  const { mutate, isPending } = esEdicion ? editar : cargar;
+
   const {
     register,
     handleSubmit,
@@ -48,19 +75,25 @@ export function CompetidorForm({ torneoId }: { torneoId: string }) {
     formState: { errors },
   } = useForm<CompetidorFormValues>({
     resolver: zodResolver(competidorSchema),
-    defaultValues: { sexo: 'M', graduacion: 'CinturonBlanco' },
+    defaultValues: competidor ? valoresDesdeCompetidor(competidor) : { sexo: 'M', graduacion: 'CinturonBlanco' },
   });
 
   const onSubmit = (values: CompetidorFormValues) => {
     mutate(
       { ...values, telefono: values.telefono || undefined },
       {
-        onSuccess: (competidor) => {
-          toast.success(`Competidor "${competidor.nombreCompleto}" cargado correctamente.`);
-          reset({ sexo: 'M', graduacion: 'CinturonBlanco' });
+        onSuccess: (guardado) => {
+          if (esEdicion) {
+            toast.success(`Competidor "${guardado.nombreCompleto}" actualizado correctamente.`);
+            navigate(`/torneos/${torneoId}/competidores`);
+          } else {
+            toast.success(`Competidor "${guardado.nombreCompleto}" cargado correctamente.`);
+            reset({ sexo: 'M', graduacion: 'CinturonBlanco' });
+          }
         },
         onError: (error) => {
-          toast.error(error instanceof ApiError ? error.message : 'No se pudo cargar el competidor.');
+          const fallback = esEdicion ? 'No se pudo actualizar el competidor.' : 'No se pudo cargar el competidor.';
+          toast.error(error instanceof ApiError ? error.message : fallback);
         },
       },
     );
@@ -232,7 +265,13 @@ export function CompetidorForm({ torneoId }: { torneoId: string }) {
       </div>
 
       <Button type="submit" disabled={isPending} className="min-h-11 self-start px-6">
-        {isPending ? 'Cargando competidor…' : 'Cargar competidor'}
+        {isPending
+          ? esEdicion
+            ? 'Guardando cambios…'
+            : 'Cargando competidor…'
+          : esEdicion
+            ? 'Guardar cambios'
+            : 'Cargar competidor'}
       </Button>
     </form>
   );
