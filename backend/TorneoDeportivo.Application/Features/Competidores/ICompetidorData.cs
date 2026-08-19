@@ -8,6 +8,7 @@ public interface ICompetidorData
 {
     string Nombre { get; }
     string Apellido { get; }
+    string Sexo { get; }
     int Edad { get; }
     string Graduacion { get; }
     decimal Peso { get; }

@@ -93,11 +93,13 @@ export interface CreateCategoriaInput {
 export interface Competidor {
   id: string;
   torneoId: string;
-  categoriaId: string;
-  categoriaNombre?: string;
+  // La categoría es opcional: se asigna al armar las llaves (H0005).
+  categoriaId?: string | null;
+  categoriaNombre?: string | null;
   nombre: string;
   apellido: string;
   nombreCompleto: string;
+  sexo: Sexo;
   edad: number;
   graduacion: string;
   peso: number;
@@ -108,9 +110,9 @@ export interface Competidor {
 }
 
 export interface CreateCompetidorInput {
-  categoriaId: string;
   nombre: string;
   apellido: string;
+  sexo: Sexo;
   edad: number;
   graduacion: string;
   peso: number;

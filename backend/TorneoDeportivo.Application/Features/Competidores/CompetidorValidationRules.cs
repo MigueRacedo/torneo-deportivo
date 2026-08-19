@@ -18,6 +18,10 @@ public static class CompetidorValidationRules
         v.RuleFor(x => x.Nombre).NotEmpty().MaximumLength(150);
         v.RuleFor(x => x.Apellido).NotEmpty().MaximumLength(150);
 
+        v.RuleFor(x => x.Sexo)
+            .Must(val => Enum.TryParse<Sexo>(val, out _))
+            .WithMessage("El sexo debe ser 'M' o 'F'.");
+
         v.RuleFor(x => x.Edad)
             .InclusiveBetween(1, 120)
             .WithMessage("La edad debe estar entre 1 y 120 años.");

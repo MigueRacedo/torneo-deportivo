@@ -22,8 +22,10 @@ public class CategoriaConfiguration : IEntityTypeConfiguration<Categoria>
         builder.Property(c => c.RangoPesoMax).HasPrecision(5, 2);
         builder.Property(c => c.RangoGraduacionMin).IsRequired().HasMaxLength(50);
         builder.Property(c => c.RangoGraduacionMax).IsRequired().HasMaxLength(50);
+        // La categoría del competidor es opcional (se asigna al armar las llaves); al eliminar la categoría,
+        // los competidores quedan sin categoría en lugar de bloquear la operación.
         builder.HasMany(c => c.Competidores).WithOne(comp => comp.Categoria)
-               .HasForeignKey(comp => comp.CategoriaId).OnDelete(DeleteBehavior.Restrict);
+               .HasForeignKey(comp => comp.CategoriaId).IsRequired(false).OnDelete(DeleteBehavior.SetNull);
         builder.HasMany(c => c.Llaves).WithOne(l => l.Categoria)
                .HasForeignKey(l => l.CategoriaId).OnDelete(DeleteBehavior.Cascade);
     }

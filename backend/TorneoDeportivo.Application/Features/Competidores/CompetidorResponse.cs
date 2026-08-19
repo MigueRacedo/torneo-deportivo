@@ -7,11 +7,12 @@ namespace TorneoDeportivo.Application.Features.Competidores;
 public record CompetidorResponse(
     Guid Id,
     Guid TorneoId,
-    Guid CategoriaId,
+    Guid? CategoriaId,
     string? CategoriaNombre,
     string Nombre,
     string Apellido,
     string NombreCompleto,
+    string Sexo,
     int Edad,
     string Graduacion,
     decimal Peso,

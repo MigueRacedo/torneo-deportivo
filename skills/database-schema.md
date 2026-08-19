@@ -45,9 +45,12 @@ CREATE TABLE categorias (
 CREATE TABLE competidores (
     id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     torneo_id       UUID NOT NULL REFERENCES torneos(id) ON DELETE CASCADE,
-    categoria_id    UUID NOT NULL REFERENCES categorias(id) ON DELETE CASCADE,
+    -- categoria_id es NULLABLE: el competidor se carga sin categoría (H0004) y se le asigna
+    -- una al armar las llaves (H0005), clasificándolo por sus atributos. ON DELETE SET NULL.
+    categoria_id    UUID REFERENCES categorias(id) ON DELETE SET NULL,
     nombre          VARCHAR(100) NOT NULL,
     apellido        VARCHAR(100) NOT NULL,
+    sexo            CHAR(1) NOT NULL,       -- M | F (se cruza con categorias.sexo al clasificar)
     edad            INT NOT NULL,
     graduacion      VARCHAR(50) NOT NULL,   -- e.g. "CinturonNegro1Dan"
     peso            DECIMAL(5,2) NOT NULL,  -- kg

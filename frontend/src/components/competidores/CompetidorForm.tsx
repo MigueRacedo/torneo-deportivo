@@ -8,16 +8,16 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useCargarCompetidor } from '@/hooks/useCompetidores';
 import { ApiError } from '@/lib/api';
-import { GRADUACIONES, type Categoria } from '@/types';
+import { GRADUACIONES } from '@/types';
 
 // Estilo compartido para los <select> nativos (coincide con el <Input> de shadcn).
 const selectClass =
   'min-h-11 w-full rounded-lg border border-input bg-transparent px-2.5 py-1 text-base transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 md:text-sm';
 
 const competidorSchema = z.object({
-  categoriaId: z.string().min(1, 'Elegí una categoría para el competidor.'),
   nombre: z.string().trim().min(1, 'El nombre es obligatorio.').max(150, 'Máximo 150 caracteres.'),
   apellido: z.string().trim().min(1, 'El apellido es obligatorio.').max(150, 'Máximo 150 caracteres.'),
+  sexo: z.enum(['M', 'F'], { message: 'Elegí el sexo.' }),
   edad: z
     .number({ message: 'Ingresá la edad.' })
     .int('La edad debe ser un número entero.')
@@ -39,7 +39,7 @@ const competidorSchema = z.object({
 
 type CompetidorFormValues = z.infer<typeof competidorSchema>;
 
-export function CompetidorForm({ torneoId, categorias }: { torneoId: string; categorias: Categoria[] }) {
+export function CompetidorForm({ torneoId }: { torneoId: string }) {
   const { mutate, isPending } = useCargarCompetidor(torneoId);
   const {
     register,
@@ -48,7 +48,7 @@ export function CompetidorForm({ torneoId, categorias }: { torneoId: string; cat
     formState: { errors },
   } = useForm<CompetidorFormValues>({
     resolver: zodResolver(competidorSchema),
-    defaultValues: { graduacion: 'CinturonBlanco' },
+    defaultValues: { sexo: 'M', graduacion: 'CinturonBlanco' },
   });
 
   const onSubmit = (values: CompetidorFormValues) => {
@@ -57,7 +57,7 @@ export function CompetidorForm({ torneoId, categorias }: { torneoId: string; cat
       {
         onSuccess: (competidor) => {
           toast.success(`Competidor "${competidor.nombreCompleto}" cargado correctamente.`);
-          reset({ graduacion: 'CinturonBlanco' });
+          reset({ sexo: 'M', graduacion: 'CinturonBlanco' });
         },
         onError: (error) => {
           toast.error(error instanceof ApiError ? error.message : 'No se pudo cargar el competidor.');
@@ -68,32 +68,6 @@ export function CompetidorForm({ torneoId, categorias }: { torneoId: string; cat
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6" noValidate>
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="categoriaId">Categoría</Label>
-        <select
-          id="categoriaId"
-          className={selectClass}
-          aria-invalid={Boolean(errors.categoriaId)}
-          aria-describedby={errors.categoriaId ? 'categoria-error' : undefined}
-          defaultValue=""
-          {...register('categoriaId')}
-        >
-          <option value="" disabled>
-            Elegí una categoría…
-          </option>
-          {categorias.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.nombre}
-            </option>
-          ))}
-        </select>
-        {errors.categoriaId && (
-          <p id="categoria-error" className="text-sm leading-relaxed text-destructive">
-            {errors.categoriaId.message}
-          </p>
-        )}
-      </div>
-
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <div className="flex flex-col gap-2">
           <Label htmlFor="nombre">Nombre</Label>
@@ -125,6 +99,14 @@ export function CompetidorForm({ torneoId, categorias }: { torneoId: string; cat
             </p>
           )}
         </div>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <Label htmlFor="sexo">Sexo</Label>
+        <select id="sexo" className={selectClass} aria-invalid={Boolean(errors.sexo)} {...register('sexo')}>
+          <option value="M">Masculino</option>
+          <option value="F">Femenino</option>
+        </select>
       </div>
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">

@@ -10,42 +10,29 @@ namespace TorneoDeportivo.Application.Tests.Features.Competidores;
 
 public class CreateCompetidorCommandHandlerTests
 {
-    private static CreateCompetidorCommand Comando(Guid torneoId, Guid categoriaId) => new(
-        torneoId, categoriaId, "Juan", "Pérez", 15, "CinturonVerde",
+    private static CreateCompetidorCommand Comando(Guid torneoId) => new(
+        torneoId, "Juan", "Pérez", "M", 15, "CinturonVerde",
         45.5m, 1.65m, "Escuela Central", "María Pérez", "1122334455");
 
-    private static (ICompetidorRepository comp, ICategoriaRepository cat, ITorneoRepository tor) Repos(
-        Guid torneoId, Guid categoriaId, EstadoTorneo estado = EstadoTorneo.Borrador, bool categoriaExiste = true,
-        Guid? categoriaTorneoId = null)
-    {
-        var tor = Substitute.For<ITorneoRepository>();
-        tor.GetByIdAsync(torneoId, Arg.Any<CancellationToken>())
-            .Returns(new Torneo { Id = torneoId, Estado = estado });
-
-        var cat = Substitute.For<ICategoriaRepository>();
-        cat.GetByIdAsync(categoriaId, Arg.Any<CancellationToken>()).Returns(
-            categoriaExiste
-                ? new Categoria { Id = categoriaId, TorneoId = categoriaTorneoId ?? torneoId, Nombre = "Cadetes A" }
-                : null);
-
-        return (Substitute.For<ICompetidorRepository>(), cat, tor);
-    }
-
     [Fact]
-    public async Task Handle_DatosValidos_CargaCompetidorYRetornaResponse()
+    public async Task Handle_DatosValidos_CargaCompetidorSinCategoria()
     {
         var torneoId = Guid.NewGuid();
-        var categoriaId = Guid.NewGuid();
-        var (comp, cat, tor) = Repos(torneoId, categoriaId);
-        var handler = new CreateCompetidorCommandHandler(comp, cat, tor);
+        var tor = Substitute.For<ITorneoRepository>();
+        tor.GetByIdAsync(torneoId, Arg.Any<CancellationToken>())
+            .Returns(new Torneo { Id = torneoId, Estado = EstadoTorneo.Borrador });
+        var comp = Substitute.For<ICompetidorRepository>();
+        var handler = new CreateCompetidorCommandHandler(comp, tor);
 
-        var result = await handler.Handle(Comando(torneoId, categoriaId), CancellationToken.None);
+        var result = await handler.Handle(Comando(torneoId), CancellationToken.None);
 
         Assert.Equal("Juan Pérez", result.NombreCompleto);
-        Assert.Equal("Cadetes A", result.CategoriaNombre);
-        Assert.Equal(categoriaId, result.CategoriaId);
+        Assert.Equal("M", result.Sexo);
+        Assert.Null(result.CategoriaId);
+        Assert.Null(result.CategoriaNombre);
         await comp.Received(1).AddAsync(
-            Arg.Is<Competidor>(c => c.Nombre == "Juan" && c.CategoriaId == categoriaId && c.TorneoId == torneoId),
+            Arg.Is<Competidor>(c => c.Nombre == "Juan" && c.TorneoId == torneoId
+                && c.CategoriaId == null && c.Sexo == Sexo.M),
             Arg.Any<CancellationToken>());
     }
 
@@ -55,10 +42,10 @@ public class CreateCompetidorCommandHandlerTests
         var tor = Substitute.For<ITorneoRepository>();
         tor.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns((Torneo?)null);
         var comp = Substitute.For<ICompetidorRepository>();
-        var handler = new CreateCompetidorCommandHandler(comp, Substitute.For<ICategoriaRepository>(), tor);
+        var handler = new CreateCompetidorCommandHandler(comp, tor);
 
         await Assert.ThrowsAsync<NotFoundException>(
-            () => handler.Handle(Comando(Guid.NewGuid(), Guid.NewGuid()), CancellationToken.None));
+            () => handler.Handle(Comando(Guid.NewGuid()), CancellationToken.None));
         await comp.DidNotReceive().AddAsync(Arg.Any<Competidor>(), Arg.Any<CancellationToken>());
     }
 
@@ -66,39 +53,14 @@ public class CreateCompetidorCommandHandlerTests
     public async Task Handle_TorneoFinalizado_LanzaConflictException()
     {
         var torneoId = Guid.NewGuid();
-        var categoriaId = Guid.NewGuid();
-        var (comp, cat, tor) = Repos(torneoId, categoriaId, estado: EstadoTorneo.Finalizado);
-        var handler = new CreateCompetidorCommandHandler(comp, cat, tor);
+        var tor = Substitute.For<ITorneoRepository>();
+        tor.GetByIdAsync(torneoId, Arg.Any<CancellationToken>())
+            .Returns(new Torneo { Id = torneoId, Estado = EstadoTorneo.Finalizado });
+        var comp = Substitute.For<ICompetidorRepository>();
+        var handler = new CreateCompetidorCommandHandler(comp, tor);
 
         await Assert.ThrowsAsync<ConflictException>(
-            () => handler.Handle(Comando(torneoId, categoriaId), CancellationToken.None));
-        await comp.DidNotReceive().AddAsync(Arg.Any<Competidor>(), Arg.Any<CancellationToken>());
-    }
-
-    [Fact]
-    public async Task Handle_CategoriaInexistente_LanzaNotFoundException()
-    {
-        var torneoId = Guid.NewGuid();
-        var categoriaId = Guid.NewGuid();
-        var (comp, cat, tor) = Repos(torneoId, categoriaId, categoriaExiste: false);
-        var handler = new CreateCompetidorCommandHandler(comp, cat, tor);
-
-        await Assert.ThrowsAsync<NotFoundException>(
-            () => handler.Handle(Comando(torneoId, categoriaId), CancellationToken.None));
-        await comp.DidNotReceive().AddAsync(Arg.Any<Competidor>(), Arg.Any<CancellationToken>());
-    }
-
-    [Fact]
-    public async Task Handle_CategoriaDeOtroTorneo_LanzaNotFoundException()
-    {
-        var torneoId = Guid.NewGuid();
-        var categoriaId = Guid.NewGuid();
-        // La categoría existe pero pertenece a otro torneo distinto al de la ruta.
-        var (comp, cat, tor) = Repos(torneoId, categoriaId, categoriaTorneoId: Guid.NewGuid());
-        var handler = new CreateCompetidorCommandHandler(comp, cat, tor);
-
-        await Assert.ThrowsAsync<NotFoundException>(
-            () => handler.Handle(Comando(torneoId, categoriaId), CancellationToken.None));
+            () => handler.Handle(Comando(torneoId), CancellationToken.None));
         await comp.DidNotReceive().AddAsync(Arg.Any<Competidor>(), Arg.Any<CancellationToken>());
     }
 }

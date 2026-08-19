@@ -43,7 +43,7 @@ export function CompetidorList({ torneoId }: { torneoId: string }) {
         <thead className="bg-secondary text-secondary-foreground">
           <tr>
             <th scope="col" className="px-4 py-2 font-semibold">Competidor</th>
-            <th scope="col" className="px-4 py-2 font-semibold">Categoría</th>
+            <th scope="col" className="px-4 py-2 font-semibold">Sexo</th>
             <th scope="col" className="px-4 py-2 font-semibold">Escuela</th>
             <th scope="col" className="px-4 py-2 font-semibold">Edad</th>
             <th scope="col" className="px-4 py-2 font-semibold">Graduación</th>
@@ -57,7 +57,7 @@ export function CompetidorList({ torneoId }: { torneoId: string }) {
               <td className="px-4 py-2 font-medium">
                 {c.apellido}, {c.nombre}
               </td>
-              <td className="px-4 py-2">{c.categoriaNombre ?? '—'}</td>
+              <td className="px-4 py-2">{c.sexo === 'F' ? 'Femenino' : 'Masculino'}</td>
               <td className="px-4 py-2">{c.escuela}</td>
               <td className="px-4 py-2">{c.edad}</td>
               <td className="px-4 py-2">{formatearGraduacion(c.graduacion)}</td>

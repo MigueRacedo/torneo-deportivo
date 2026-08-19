@@ -11,7 +11,6 @@ public class CreateCompetidorCommandValidator : AbstractValidator<CreateCompetid
     public CreateCompetidorCommandValidator()
     {
         RuleFor(x => x.TorneoId).NotEmpty();
-        RuleFor(x => x.CategoriaId).NotEmpty();
         this.AddCompetidorRules();
     }
 }

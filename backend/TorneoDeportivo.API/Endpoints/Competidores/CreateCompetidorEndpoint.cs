@@ -28,9 +28,9 @@ public class CreateCompetidorEndpoint(ISender sender) : Endpoint<CreateCompetido
     {
         var command = new CreateCompetidorCommand(
             req.TorneoId,
-            req.CategoriaId,
             req.Nombre,
             req.Apellido,
+            req.Sexo,
             req.Edad,
             req.Graduacion,
             req.Peso,

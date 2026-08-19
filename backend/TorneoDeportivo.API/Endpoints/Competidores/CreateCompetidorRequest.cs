@@ -8,9 +8,9 @@ namespace TorneoDeportivo.API.Endpoints.Competidores;
 /// </summary>
 public record CreateCompetidorRequest(
     Guid TorneoId,
-    Guid CategoriaId,
     string Nombre,
     string Apellido,
+    string Sexo,
     int Edad,
     string Graduacion,
     decimal Peso,

@@ -8,9 +8,9 @@ public class CreateCompetidorCommandValidatorTests
     private readonly CreateCompetidorCommandValidator _validator = new();
 
     private static CreateCompetidorCommand Base(
-        string nombre = "Juan", int edad = 15, string graduacion = "CinturonVerde",
-        decimal peso = 45.5m, decimal altura = 1.65m, Guid? categoriaId = null) => new(
-        Guid.NewGuid(), categoriaId ?? Guid.NewGuid(), nombre, "Pérez", edad, graduacion,
+        string nombre = "Juan", string sexo = "M", int edad = 15, string graduacion = "CinturonVerde",
+        decimal peso = 45.5m, decimal altura = 1.65m) => new(
+        Guid.NewGuid(), nombre, "Pérez", sexo, edad, graduacion,
         peso, altura, "Escuela Central", "María Pérez", null);
 
     [Fact]
@@ -28,11 +28,11 @@ public class CreateCompetidorCommandValidatorTests
     }
 
     [Fact]
-    public void Validate_CategoriaVacia_FallaConError()
+    public void Validate_SexoInvalido_FallaConError()
     {
-        var result = _validator.Validate(Base(categoriaId: Guid.Empty));
+        var result = _validator.Validate(Base(sexo: "X"));
         Assert.False(result.IsValid);
-        Assert.Contains(result.Errors, e => e.PropertyName == nameof(CreateCompetidorCommand.CategoriaId));
+        Assert.Contains(result.Errors, e => e.PropertyName == nameof(CreateCompetidorCommand.Sexo));
     }
 
     [Fact]

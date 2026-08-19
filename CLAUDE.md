@@ -73,8 +73,10 @@ Torneo → Categorías → Competidores → Llaves (Bracket)
   rangoGraduacionMin, rangoGraduacionMax
 
 ### Competidor
-- id, torneoId, categoriaId, nombre, apellido, edad, graduacion,
+- id, torneoId, categoriaId (**nullable**), nombre, apellido, **sexo (M/F)**, edad, graduacion,
   peso, altura, escuela, responsable, telefono
+- Se carga **sin categoría** (H0004); la categoría se asigna al armar las llaves (H0005),
+  clasificándolo por sus atributos (sexo, edad, peso, graduación) contra los rangos de cada categoría.
 
 ### LlaveCompetencia (Bracket)
 - id, categoriaId, ronda, posicion, competidor1Id, competidor2Id,
