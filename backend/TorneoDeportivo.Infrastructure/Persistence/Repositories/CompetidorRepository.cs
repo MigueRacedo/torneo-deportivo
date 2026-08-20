@@ -49,4 +49,11 @@ public class CompetidorRepository(TorneoDbContext db) : ICompetidorRepository
         db.Competidores.Remove(competidor);
         await db.SaveChangesAsync(ct);
     }
+
+    /// <summary>Actualiza en bloque un conjunto de competidores y guarda los cambios.</summary>
+    public async Task UpdateRangeAsync(IEnumerable<Competidor> competidores, CancellationToken ct)
+    {
+        db.Competidores.UpdateRange(competidores);
+        await db.SaveChangesAsync(ct);
+    }
 }

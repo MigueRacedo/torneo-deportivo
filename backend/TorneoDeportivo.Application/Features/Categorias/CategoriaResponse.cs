@@ -15,4 +15,5 @@ public record CategoriaResponse(
     decimal? RangoPesoMin,
     decimal? RangoPesoMax,
     string RangoGraduacionMin,
-    string RangoGraduacionMax);
+    string RangoGraduacionMax,
+    bool LlavesGeneradas);

@@ -29,6 +29,7 @@ public static class DependencyInjection
         services.AddScoped<ITorneoRepository, TorneoRepository>();
         services.AddScoped<ICategoriaRepository, CategoriaRepository>();
         services.AddScoped<ICompetidorRepository, CompetidorRepository>();
+        services.AddScoped<ILlaveCompetenciaRepository, LlaveCompetenciaRepository>();
         services.AddScoped<IUsuarioRepository, UsuarioRepository>();
         services.AddSingleton<IPasswordHasher, PasswordHasher>();
         services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();

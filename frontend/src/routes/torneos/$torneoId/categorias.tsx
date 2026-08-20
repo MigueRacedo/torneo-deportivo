@@ -1,4 +1,5 @@
 import { Link, useParams } from 'react-router-dom';
+import { GenerarLlavesButton } from '@/components/bracket/GenerarLlavesButton';
 import { CategoriaForm } from '@/components/categorias/CategoriaForm';
 import { CategoriaList } from '@/components/categorias/CategoriaList';
 import { useTorneo } from '@/hooks/useTorneos';
@@ -21,6 +22,17 @@ export default function CategoriasPage() {
           <p className="text-sm leading-relaxed text-muted-foreground text-left">{torneo.nombre}</p>
         )}
       </header>
+
+      {esCoordinador && (
+        <section className="flex flex-col gap-2 rounded-lg border bg-card p-4">
+          <h2 className="text-base leading-relaxed font-semibold text-left">Armar las llaves</h2>
+          <p className="text-sm leading-relaxed text-muted-foreground text-left">
+            Clasifica a los competidores en las categorías que encajen y genera el bracket de cada una (2+
+            competidores). Una categoría con llaves generadas queda bloqueada para edición.
+          </p>
+          <GenerarLlavesButton torneoId={torneoId} />
+        </section>
+      )}
 
       <CategoriaList torneoId={torneoId} />
 

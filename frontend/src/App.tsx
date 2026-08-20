@@ -4,6 +4,7 @@ import { RoleGuard } from '@/components/layout/RoleGuard';
 import LoginPage from '@/routes/login';
 import CategoriasPage from '@/routes/torneos/$torneoId/categorias';
 import EditarCategoriaPage from '@/routes/torneos/$torneoId/categorias/$categoriaId/editar';
+import LlavesPage from '@/routes/torneos/$torneoId/categorias/$categoriaId/llaves';
 import CompetidoresPage from '@/routes/torneos/$torneoId/competidores';
 import EditarCompetidorPage from '@/routes/torneos/$torneoId/competidores/$competidorId/editar';
 import EditarTorneoPage from '@/routes/torneos/$torneoId/editar';
@@ -87,6 +88,10 @@ function App() {
                   }
                 />
                 <Route path="/torneos/:torneoId/categorias" element={<CategoriasPage />} />
+                <Route
+                  path="/torneos/:torneoId/categorias/:categoriaId/llaves"
+                  element={<LlavesPage />}
+                />
                 <Route
                   path="/torneos/:torneoId/categorias/:categoriaId/editar"
                   element={

@@ -21,6 +21,8 @@ public class Categoria
     public decimal? RangoPesoMax { get; set; }
     public string RangoGraduacionMin { get; set; } = string.Empty;
     public string RangoGraduacionMax { get; set; } = string.Empty;
+    // True una vez que se generaron las llaves de esta categoría (impide regenerarlas).
+    public bool LlavesGeneradas { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 

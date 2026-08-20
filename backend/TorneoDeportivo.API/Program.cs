@@ -5,7 +5,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using TorneoDeportivo.API.Hubs;
 using TorneoDeportivo.API.Middleware;
+using TorneoDeportivo.API.Services;
 using TorneoDeportivo.Application;
+using TorneoDeportivo.Application.Common.Interfaces;
 using TorneoDeportivo.Domain.Interfaces;
 using TorneoDeportivo.Infrastructure;
 using TorneoDeportivo.Infrastructure.Persistence;
@@ -18,6 +20,7 @@ builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddFastEndpoints();
 builder.Services.AddSignalR();
+builder.Services.AddScoped<IBracketNotifier, SignalRBracketNotifier>();
 
 var jwtSecret = builder.Configuration["Jwt:Secret"]
     ?? throw new InvalidOperationException("Falta configurar Jwt:Secret");

@@ -24,6 +24,9 @@ public class DeleteCategoriaCommandHandler(
         if (categoria is null || categoria.TorneoId != request.TorneoId)
             throw new NotFoundException(nameof(Categoria), request.Id);
 
+        if (categoria.LlavesGeneradas)
+            throw new ConflictException("No se puede eliminar una categoría con llaves generadas.");
+
         var torneo = await torneoRepo.GetByIdAsync(categoria.TorneoId, ct);
         if (torneo?.Estado == EstadoTorneo.Finalizado)
             throw new ConflictException("No se pueden eliminar las categorías de un torneo finalizado.");

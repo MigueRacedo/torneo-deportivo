@@ -22,6 +22,9 @@ public interface ICompetidorRepository
     /// <summary>Actualiza un competidor existente.</summary>
     Task UpdateAsync(Competidor competidor, CancellationToken ct);
 
+    /// <summary>Actualiza en bloque un conjunto de competidores (e.g. al clasificarlos en categorías).</summary>
+    Task UpdateRangeAsync(IEnumerable<Competidor> competidores, CancellationToken ct);
+
     /// <summary>Elimina un competidor.</summary>
     Task DeleteAsync(Competidor competidor, CancellationToken ct);
 }

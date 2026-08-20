@@ -76,6 +76,7 @@ export interface Categoria {
   rangoPesoMax?: number | null;
   rangoGraduacionMin: string;
   rangoGraduacionMax: string;
+  llavesGeneradas: boolean;
 }
 
 export interface CreateCategoriaInput {
@@ -123,3 +124,43 @@ export interface CreateCompetidorInput {
 }
 
 export type UpdateCompetidorInput = CreateCompetidorInput;
+
+// ── Llaves / Bracket (H0005) ──────────────────────────────────────────────
+export type EstadoLlave = 'Pendiente' | 'EnCurso' | 'Finalizado' | 'Bye';
+
+/** Competidor tal como aparece dentro de un match (datos mínimos). */
+export interface MatchCompetidor {
+  id: string;
+  nombreCompleto: string;
+}
+
+export interface Match {
+  id: string;
+  categoriaId: string;
+  ronda: number;
+  posicion: number;
+  competidor1?: MatchCompetidor | null;
+  competidor2?: MatchCompetidor | null;
+  ganador?: MatchCompetidor | null;
+  estado: EstadoLlave;
+}
+
+export interface Bracket {
+  categoriaId: string;
+  categoriaNombre: string;
+  totalRondas: number;
+  rounds: Match[][]; // [ronda][match]
+}
+
+export interface GenerarLlavesResultado {
+  categoriaId: string;
+  categoriaNombre: string;
+  competidoresClasificados: number;
+  llavesGeneradas: boolean;
+  motivo?: string | null;
+}
+
+export interface GenerarLlavesResponse {
+  competidoresSinClasificar: number;
+  categorias: GenerarLlavesResultado[];
+}

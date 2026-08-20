@@ -1,12 +1,15 @@
 import { useAuthStore } from '@/store/authStore';
 import type {
+  Bracket,
   Categoria,
   Competidor,
   CreateCategoriaInput,
   CreateCompetidorInput,
   CreateTorneoInput,
+  GenerarLlavesResponse,
   LoginInput,
   LoginResult,
+  Match,
   Torneo,
   UpdateCompetidorInput,
   UpdateTorneoInput,
@@ -117,5 +120,16 @@ export const api = {
       }),
     eliminar: (torneoId: string, id: string) =>
       apiFetch<void>(`/api/v1/torneos/${torneoId}/competidores/${id}`, { method: 'DELETE' }),
+  },
+  llaves: {
+    generar: (torneoId: string) =>
+      apiFetch<GenerarLlavesResponse>(`/api/v1/torneos/${torneoId}/llaves/generar`, { method: 'POST' }),
+    obtener: (torneoId: string, categoriaId: string) =>
+      apiFetch<Bracket>(`/api/v1/torneos/${torneoId}/llaves/${categoriaId}`),
+    registrarGanador: (torneoId: string, llaveId: string, ganadorId: string) =>
+      apiFetch<Match>(`/api/v1/torneos/${torneoId}/llaves/${llaveId}/ganador`, {
+        method: 'PUT',
+        body: JSON.stringify({ ganadorId }),
+      }),
   },
 };

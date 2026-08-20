@@ -80,22 +80,33 @@ export function CategoriaCard({ categoria }: { categoria: Categoria }) {
         </div>
       </dl>
 
-      {esCoordinador && (
-        <div className="flex flex-wrap items-center gap-4 text-sm leading-relaxed">
+      <div className="flex flex-wrap items-center gap-4 text-sm leading-relaxed">
+        {categoria.llavesGeneradas && (
           <Link
-            to={`/torneos/${categoria.torneoId}/categorias/${categoria.id}/editar`}
+            to={`/torneos/${categoria.torneoId}/categorias/${categoria.id}/llaves`}
             className="inline-flex min-h-11 items-center font-medium text-secondary underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-3 focus-visible:outline-secondary"
           >
-            Editar
+            Ver llaves →
           </Link>
-          <ConfirmDialog
-            trigger="Eliminar"
-            title="Eliminar categoría"
-            description={`¿Seguro que querés eliminar la categoría "${categoria.nombre}"? Los competidores que tuviera asignados quedarán sin categoría. Esta acción no se puede deshacer.`}
-            onConfirm={onEliminar}
-          />
-        </div>
-      )}
+        )}
+        {/* Con llaves generadas, la categoría queda bloqueada para edición/eliminación. */}
+        {esCoordinador && !categoria.llavesGeneradas && (
+          <>
+            <Link
+              to={`/torneos/${categoria.torneoId}/categorias/${categoria.id}/editar`}
+              className="inline-flex min-h-11 items-center font-medium text-secondary underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-3 focus-visible:outline-secondary"
+            >
+              Editar
+            </Link>
+            <ConfirmDialog
+              trigger="Eliminar"
+              title="Eliminar categoría"
+              description={`¿Seguro que querés eliminar la categoría "${categoria.nombre}"? Los competidores que tuviera asignados quedarán sin categoría. Esta acción no se puede deshacer.`}
+              onConfirm={onEliminar}
+            />
+          </>
+        )}
+      </div>
     </article>
   );
 }

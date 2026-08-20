@@ -66,6 +66,22 @@ public class DeleteCategoriaCommandHandlerTests
     }
 
     [Fact]
+    public async Task Handle_CategoriaConLlavesGeneradas_LanzaConflictException()
+    {
+        var id = Guid.NewGuid();
+        var torneoId = Guid.NewGuid();
+        var cat = Substitute.For<ICategoriaRepository>();
+        var categoria = CategoriaExistente(id, torneoId);
+        categoria.LlavesGeneradas = true;
+        cat.GetByIdAsync(id, Arg.Any<CancellationToken>()).Returns(categoria);
+        var handler = new DeleteCategoriaCommandHandler(cat, TorneoRepoCon(torneoId, EstadoTorneo.Borrador));
+
+        await Assert.ThrowsAsync<ConflictException>(
+            () => handler.Handle(new DeleteCategoriaCommand(id, torneoId), CancellationToken.None));
+        await cat.DidNotReceive().DeleteAsync(Arg.Any<Categoria>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
     public async Task Handle_TorneoFinalizado_LanzaConflictException()
     {
         var id = Guid.NewGuid();
