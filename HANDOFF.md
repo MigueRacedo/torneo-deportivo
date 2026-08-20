@@ -69,13 +69,14 @@ Documentado en `docs/CRUD-extra-edicion-y-borrado.pdf`.
 | H0010 | Rehacer llaves de una categoría | Inscripción y llaves | 5 | Coordinador |
 | H0011 | Doble participación (Combate + Formas) | Inscripción y llaves | 13 | Coordinador |
 | H0012 | Categoría desierta | Inscripción y llaves | 3 | Coordinador |
+| H0013 | Tablas de competidores filtrables/ordenables/paginadas | Usabilidad | 5 | Coordinador + Profesor |
 
 - H0007: en backend **solo** existe `ICompetidorRepository.GetByEscuelaAsync` (repositorio + interfaz).
   **No existe el endpoint** `GET /torneos/{torneoId}/competidores/escuela/{escuela}` (rol Profesor) — hay que
   crearlo, junto con su query handler y la vista Profesor en el frontend.
 - H0008: usar **QuestPDF** (ya está la licencia Community configurada en `Infrastructure/DependencyInjection.cs`).
 
-### Orden recomendado: H0009 → H0010 → H0012 → H0011
+### Orden recomendado: H0009 → H0010 → H0012 → H0011 (H0013 en cualquier momento)
 
 No es el orden en que surgieron sino el de sus dependencias. Ver el detalle del razonamiento y el modelo
 de estados en `CLAUDE.md` (raíz), sección **"Ciclo de vida del torneo (H0009)"**.
@@ -134,6 +135,46 @@ está solo (categoría desierta)".
   (`GenerarLlavesCommandHandler`); falta representarlo explícitamente como estado/resultado en vez de
   como un caso sin llaves, y que el competidor figure como campeón.
 - Depende de H0010 (crear la categoría implica volver a generar).
+
+### H0013 — Tablas de competidores filtrables, ordenables y paginadas · 5 pts · Performance
+
+**Origen:** pedido del usuario (2026-08-20). Con 15 competidores ya cuesta encontrar uno; un torneo real
+tiene cientos y hoy las tablas son listados planos sin ningún control.
+
+**Alcance — las dos tablas de competidores que existen hoy:**
+- `components/competidores/CompetidorList.tsx` (página de competidores del torneo).
+- `components/bracket/CompetidoresSinCategoria.tsx` (vista consolidada de llaves).
+- Cuando se implemente **H0007** (vista Profesor), esa tabla debe nacer usando el mismo componente.
+
+**Implementación:** extraer un componente de tabla reutilizable (ej. `components/ui/data-table.tsx`) con
+**`@tanstack/react-table`** — hay que agregar la dependencia, hoy no está instalada. Es la opción coherente
+con el stack (ya se usa TanStack Query) y es headless, así que no pelea con Tailwind ni con shadcn/ui.
+
+**Decisión de diseño clave — paginación del lado del CLIENTE, no del servidor:**
+Es tentador paginar en el backend, pero hoy sería un error. Varias vistas ya **derivan datos del listado
+completo**: `routes/torneos/$torneoId/llaves.tsx` calcula `competidoresPorCategoria` recorriendo todos los
+competidores, y `sinCategoria` filtra sobre el total. Con paginación server-side esos conteos pasarían a
+ser "los de la página actual", que es simplemente incorrecto. Sumado a que un torneo son cientos de filas
+(no miles), la paginación en cliente sobre la query que ya está en cache es lo correcto.
+→ Migrar a server-side recién si un torneo supera ~2000 competidores, y entonces habrá que agregar
+endpoints de conteo agregado para las vistas derivadas.
+
+**Criterios de aceptación:**
+- Filtro de texto libre (nombre/apellido/escuela) y filtros por columna en sexo, graduación y categoría.
+- Orden ascendente/descendente por columna, con indicador visible del criterio activo.
+- Paginación con tamaño de página configurable y total de resultados a la vista.
+- El estado de filtro/orden/página es **UI state**, no server state: no va a TanStack Query (regla 7 de
+  `CLAUDE.md` raíz). Evaluar reflejarlo en la URL como se hizo con `?categoria=` en la vista de llaves.
+
+**Accesibilidad (obligatorio, `skills/ux-ui-guidelines.md`):**
+- Los headers ordenables son `<button>` dentro del `<th>`, con **`aria-sort`** en el `th`
+  (`ascending`/`descending`/`none`) — el orden no puede comunicarse solo con un ícono.
+- Los controles de paginación necesitan nombre accesible ("Página siguiente", no solo "›") y ≥44×44px.
+- Los inputs de filtro llevan `<Label>` visible, no solo placeholder.
+- Anunciar el resultado del filtrado en una región `aria-live` ("12 de 150 competidores").
+
+**Atadura con H0011:** la columna y el filtro de "Categoría" se rehacen cuando un competidor pase a tener
+varias (Combate + Formas). El resto de la tabla no se ve afectado.
 
 ---
 

@@ -99,6 +99,7 @@ Torneo → Categorías → Competidores → Llaves (Bracket)
 | H0010 | Rehacer llaves de una categoría | Inscripción y llaves | 5 | Performance | Pendiente |
 | H0011 | Doble participación (Combate + Formas) | Inscripción y llaves | 13 | Atractivo | Pendiente |
 | H0012 | Categoría desierta      | Inscripción y llaves | 3      | Performance    | Pendiente |
+| H0013 | Tablas de competidores filtrables/ordenables/paginadas | Usabilidad | 5 | Performance | Pendiente |
 
 > Además hay un **bloque CRUD extra** (editar/eliminar competidor, eliminar categoría, eliminar torneo)
 > hecho entre H0004 y H0005, que no es una historia del backlog.
@@ -116,6 +117,9 @@ Torneo → Categorías → Competidores → Llaves (Bracket)
 - **H0011 al final** porque es el único que cambia el modelo de datos (competidor ↔ categoría pasa de
   1—N a N—N) y toca clasificador, brackets, reportes y toda la UI. Hacerlo antes obligaría a rehacerlo
   encima de cada historia anterior.
+- **H0013 es independiente** de las otras cuatro: no comparte código con ellas y se puede hacer en
+  cualquier momento. La única atadura es que su columna/filtro de "Categoría" se rehace con H0011
+  (una categoría pasa a ser varias).
 
 ## Ciclo de vida del torneo (H0009)
 
