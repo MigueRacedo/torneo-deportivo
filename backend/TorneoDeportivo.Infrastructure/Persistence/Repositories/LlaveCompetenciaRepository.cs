@@ -39,4 +39,11 @@ public class LlaveCompetenciaRepository(TorneoDbContext db) : ILlaveCompetenciaR
         db.Llaves.Update(llave);
         await db.SaveChangesAsync(ct);
     }
+
+    /// <summary>Actualiza varias llaves y las guarda en un único <c>SaveChanges</c> (una sola transacción).</summary>
+    public async Task UpdateRangeAsync(IEnumerable<LlaveCompetencia> llaves, CancellationToken ct)
+    {
+        db.Llaves.UpdateRange(llaves);
+        await db.SaveChangesAsync(ct);
+    }
 }

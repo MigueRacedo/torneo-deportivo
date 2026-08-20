@@ -29,14 +29,18 @@ public static class ClasificadorCompetidores
         if (categoria.RangoPesoMax.HasValue && competidor.Peso > categoria.RangoPesoMax.Value)
             return false;
 
-        if (Enum.TryParse<Graduacion>(competidor.Graduacion, out var g)
-            && Enum.TryParse<Graduacion>(categoria.RangoGraduacionMin, out var gMin)
-            && Enum.TryParse<Graduacion>(categoria.RangoGraduacionMax, out var gMax)
-            && (g < gMin || g > gMax))
+        // Fail-closed: si alguna de las tres graduaciones no parsea, el competidor NO encaja.
+        // Antes las tres condiciones iban encadenadas con && junto a la comparación de rango, así que un
+        // parseo fallido cortocircuitaba toda la expresión y el chequeo de graduación se salteaba en
+        // silencio, dando por bueno el encaje. Rechazar deja al competidor visible en "sin categoría",
+        // que es donde se puede detectar y corregir el dato.
+        if (!Enum.TryParse<Graduacion>(competidor.Graduacion, out var g)
+            || !Enum.TryParse<Graduacion>(categoria.RangoGraduacionMin, out var gMin)
+            || !Enum.TryParse<Graduacion>(categoria.RangoGraduacionMax, out var gMax))
         {
             return false;
         }
 
-        return true;
+        return g >= gMin && g <= gMax;
     }
 }

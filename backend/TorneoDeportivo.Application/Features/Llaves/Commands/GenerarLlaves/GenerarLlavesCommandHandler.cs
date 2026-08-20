@@ -29,10 +29,14 @@ public class GenerarLlavesCommandHandler(
         var competidores = await competidorRepo.GetByTorneoIdAsync(torneo.Id, ct);
 
         // 1. Clasificación: cada competidor sin categoría va a la primera categoría que encaje por sus atributos.
+        // Solo se consideran categorías SIN llaves generadas: asignarlo a una cuyo bracket ya está armado lo
+        // dejaría con categoría pero fuera de la llave, y además invisible (no contaría como "sin clasificar"
+        // ni aparecería en la lista de competidores sin categoría del frontend).
+        var clasificables = categorias.Where(cat => !cat.LlavesGeneradas).ToList();
         var asignados = new List<Competidor>();
         foreach (var comp in competidores.Where(c => c.CategoriaId is null))
         {
-            var categoria = categorias.FirstOrDefault(cat => ClasificadorCompetidores.Encaja(comp, cat));
+            var categoria = clasificables.FirstOrDefault(cat => ClasificadorCompetidores.Encaja(comp, cat));
             if (categoria is not null)
             {
                 comp.CategoriaId = categoria.Id;

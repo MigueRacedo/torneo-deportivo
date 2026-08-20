@@ -123,6 +123,45 @@ public class GenerarLlavesCommandHandlerTests
     }
 
     [Fact]
+    public async Task Handle_CategoriaConLlavesGeneradas_NoAbsorbeCompetidoresNuevos()
+    {
+        // Una categoría con el bracket ya armado no debe "capturar" competidores nuevos: si se les asignara,
+        // quedarían con categoría pero fuera de la llave, y sin figurar como sin clasificar (invisibles).
+        var torneoId = Guid.NewGuid();
+        var conLlaves = Categoria(torneoId);
+        conLlaves.LlavesGeneradas = true;
+        var nuevo = Competidor(torneoId);
+        var competidores = new List<Competidor> { nuevo };
+
+        var (tor, cat, comp, llave) = Repos(torneoId, [conLlaves], competidores);
+        var handler = new GenerarLlavesCommandHandler(tor, cat, comp, llave);
+
+        var result = await handler.Handle(new GenerarLlavesCommand(torneoId), CancellationToken.None);
+
+        Assert.Null(nuevo.CategoriaId);
+        Assert.Equal(1, result.CompetidoresSinClasificar);
+    }
+
+    [Fact]
+    public async Task Handle_ConCategoriaBloqueadaYOtraLibre_ClasificaEnLaLibre()
+    {
+        // Con dos categorías que encajan, la que ya tiene llaves se saltea y gana la que todavía puede recibir.
+        var torneoId = Guid.NewGuid();
+        var conLlaves = Categoria(torneoId);
+        conLlaves.LlavesGeneradas = true;
+        var libre = Categoria(torneoId);
+        var competidores = new List<Competidor> { Competidor(torneoId), Competidor(torneoId) };
+
+        var (tor, cat, comp, llave) = Repos(torneoId, [conLlaves, libre], competidores);
+        var handler = new GenerarLlavesCommandHandler(tor, cat, comp, llave);
+
+        await handler.Handle(new GenerarLlavesCommand(torneoId), CancellationToken.None);
+
+        Assert.All(competidores, c => Assert.Equal(libre.Id, c.CategoriaId));
+        await llave.Received(1).AddRangeAsync(Arg.Any<IEnumerable<LlaveCompetencia>>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
     public async Task Handle_TorneoInexistente_LanzaNotFoundException()
     {
         var tor = Substitute.For<ITorneoRepository>();

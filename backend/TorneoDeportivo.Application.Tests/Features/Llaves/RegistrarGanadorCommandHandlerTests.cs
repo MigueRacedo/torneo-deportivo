@@ -65,9 +65,55 @@ public class RegistrarGanadorCommandHandlerTests
         Assert.Equal(EstadoLlave.Finalizado.ToString(), result.Estado);
         Assert.Equal(_comp1, result.Ganador!.Id);
         Assert.Equal(_comp1, siguiente.Competidor1Id); // pos 0 → slot competidor1 del match siguiente
-        await llave.Received().UpdateAsync(match, Arg.Any<CancellationToken>());
-        await llave.Received().UpdateAsync(siguiente, Arg.Any<CancellationToken>());
+        // Ambos matches se persisten en una sola operación: el actual y el de la ronda siguiente.
+        await llave.Received(1).UpdateRangeAsync(
+            Arg.Is<IEnumerable<LlaveCompetencia>>(ls => ls.Contains(match) && ls.Contains(siguiente)),
+            Arg.Any<CancellationToken>());
         await notif.Received(1).NotificarMatchActualizadoAsync(_torneoId, _categoriaId, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_MatchSinLosDosCompetidores_LanzaConflictException()
+    {
+        // El rival todavía no salió de la ronda anterior: no hay enfrentamiento que resolver.
+        var (match, siguiente) = Llaves();
+        match.Competidor2Id = null;
+        match.Competidor2 = null;
+        var (llave, cat, notif) = Deps(match, siguiente);
+        var handler = new RegistrarGanadorCommandHandler(llave, cat, notif);
+
+        await Assert.ThrowsAsync<ConflictException>(
+            () => handler.Handle(new RegistrarGanadorCommand(_torneoId, match.Id, _comp1), CancellationToken.None));
+        await notif.DidNotReceive().NotificarMatchActualizadoAsync(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_MatchYaFinalizado_LanzaConflictException()
+    {
+        // Reabrir un match resuelto dejaría al perdedor propagado aguas abajo.
+        var (match, siguiente) = Llaves();
+        match.Estado = EstadoLlave.Finalizado;
+        match.GanadorId = _comp1;
+        var (llave, cat, notif) = Deps(match, siguiente);
+        var handler = new RegistrarGanadorCommandHandler(llave, cat, notif);
+
+        await Assert.ThrowsAsync<ConflictException>(
+            () => handler.Handle(new RegistrarGanadorCommand(_torneoId, match.Id, _comp2), CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task Handle_MatchConBye_LanzaConflictException()
+    {
+        var (match, siguiente) = Llaves();
+        match.Estado = EstadoLlave.Bye;
+        match.Competidor2Id = null;
+        match.Competidor2 = null;
+        match.GanadorId = _comp1;
+        var (llave, cat, notif) = Deps(match, siguiente);
+        var handler = new RegistrarGanadorCommandHandler(llave, cat, notif);
+
+        await Assert.ThrowsAsync<ConflictException>(
+            () => handler.Handle(new RegistrarGanadorCommand(_torneoId, match.Id, _comp1), CancellationToken.None));
     }
 
     [Fact]

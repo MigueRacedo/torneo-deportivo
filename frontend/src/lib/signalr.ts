@@ -12,12 +12,17 @@ export function crearConexionBracket(torneoId: string) {
     .withAutomaticReconnect()
     .build();
 
-  connection
-    .start()
-    .then(() => connection.invoke('JoinTorneo', torneoId))
-    .catch(() => {
+  const unirseAlGrupo = () =>
+    connection.invoke('JoinTorneo', torneoId).catch(() => {
       // La actualización en vivo es un extra; si falla, la vista sigue funcionando con refetch manual.
     });
+
+  connection.start().then(unirseAlGrupo).catch(() => {});
+
+  // Al reconectar, SignalR asigna un ConnectionId nuevo y la membresía al grupo `torneo-{id}` del hub
+  // se pierde (los grupos se indexan por ConnectionId). Sin volver a unirse, las actualizaciones en vivo
+  // dejarían de llegar en silencio y la vista quedaría desactualizada sin ningún síntoma visible.
+  connection.onreconnected(unirseAlGrupo);
 
   return connection;
 }
