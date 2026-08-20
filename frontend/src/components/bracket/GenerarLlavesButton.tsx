@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { useGenerarLlaves } from '@/hooks/useBracket';
@@ -5,10 +6,11 @@ import { ApiError } from '@/lib/api';
 
 /**
  * Botón (CTA) que dispara la generación de llaves del torneo: clasifica a los competidores y arma los brackets.
- * Muestra un resumen del resultado en un toast.
+ * Muestra un resumen en un toast y lleva a la vista de llaves del torneo con el detalle completo.
  */
 export function GenerarLlavesButton({ torneoId }: { torneoId: string }) {
   const { mutate, isPending } = useGenerarLlaves(torneoId);
+  const navigate = useNavigate();
 
   const onGenerar = () =>
     mutate(undefined, {
@@ -23,6 +25,9 @@ export function GenerarLlavesButton({ torneoId }: { torneoId: string }) {
         } else {
           toast.success(`Llaves generadas en ${generadas} categoría(s).${sinClasificar}`);
         }
+        // Se navega siempre, incluso sin llaves generadas: la vista muestra qué categorías quedaron
+        // afuera y qué competidores no encajaron, que es justo lo que hay que revisar en ese caso.
+        navigate(`/torneos/${torneoId}/llaves`);
       },
       onError: (err) =>
         toast.error(err instanceof ApiError ? err.message : 'No se pudieron generar las llaves.'),

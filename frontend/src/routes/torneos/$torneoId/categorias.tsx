@@ -2,6 +2,7 @@ import { Link, useParams } from 'react-router-dom';
 import { GenerarLlavesButton } from '@/components/bracket/GenerarLlavesButton';
 import { CategoriaForm } from '@/components/categorias/CategoriaForm';
 import { CategoriaList } from '@/components/categorias/CategoriaList';
+import { useCategorias } from '@/hooks/useCategorias';
 import { useTorneo } from '@/hooks/useTorneos';
 import { useAuthStore } from '@/store/authStore';
 
@@ -10,6 +11,10 @@ export default function CategoriasPage() {
   const { torneoId = '' } = useParams<{ torneoId: string }>();
   const { data: torneo } = useTorneo(torneoId);
   const esCoordinador = useAuthStore((state) => state.usuario?.rol === 'Coordinador');
+
+  // Misma query key que usa CategoriaList: TanStack Query la deduplica, no hay request extra.
+  const { data: categorias } = useCategorias(torneoId);
+  const hayLlaves = (categorias ?? []).some((c) => c.llavesGeneradas);
 
   return (
     <section className="flex flex-col gap-8">
@@ -20,6 +25,15 @@ export default function CategoriasPage() {
         <h1 className="text-2xl leading-relaxed font-bold text-left">Categorías</h1>
         {torneo && (
           <p className="text-sm leading-relaxed text-muted-foreground text-left">{torneo.nombre}</p>
+        )}
+        {/* Solo cuando hay al menos un bracket: si no, la vista consolidada estaría vacía. */}
+        {hayLlaves && (
+          <Link
+            to={`/torneos/${torneoId}/llaves`}
+            className="text-sm leading-relaxed font-medium text-secondary underline-offset-4 hover:underline"
+          >
+            Ver todas las llaves del torneo →
+          </Link>
         )}
       </header>
 

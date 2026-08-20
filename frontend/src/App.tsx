@@ -4,7 +4,8 @@ import { RoleGuard } from '@/components/layout/RoleGuard';
 import LoginPage from '@/routes/login';
 import CategoriasPage from '@/routes/torneos/$torneoId/categorias';
 import EditarCategoriaPage from '@/routes/torneos/$torneoId/categorias/$categoriaId/editar';
-import LlavesPage from '@/routes/torneos/$torneoId/categorias/$categoriaId/llaves';
+import LlavesCategoriaPage from '@/routes/torneos/$torneoId/categorias/$categoriaId/llaves';
+import LlavesTorneoPage from '@/routes/torneos/$torneoId/llaves';
 import CompetidoresPage from '@/routes/torneos/$torneoId/competidores';
 import EditarCompetidorPage from '@/routes/torneos/$torneoId/competidores/$competidorId/editar';
 import EditarTorneoPage from '@/routes/torneos/$torneoId/editar';
@@ -88,9 +89,12 @@ function App() {
                   }
                 />
                 <Route path="/torneos/:torneoId/categorias" element={<CategoriasPage />} />
+                {/* Vista consolidada: todas las categorías del torneo; la activa va en ?categoria=<id>. */}
+                <Route path="/torneos/:torneoId/llaves" element={<LlavesTorneoPage />} />
+                {/* Vista unitaria: el bracket de una sola categoría. */}
                 <Route
                   path="/torneos/:torneoId/categorias/:categoriaId/llaves"
-                  element={<LlavesPage />}
+                  element={<LlavesCategoriaPage />}
                 />
                 <Route
                   path="/torneos/:torneoId/categorias/:categoriaId/editar"
