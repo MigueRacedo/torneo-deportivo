@@ -26,7 +26,9 @@ frontend/
 │   │   │       ├── index.tsx          # Detalle del torneo
 │   │   │       ├── categorias.tsx
 │   │   │       ├── competidores.tsx
-│   │   │       └── llaves.tsx         # Bracket (React Flow)
+│   │   │       ├── llaves.tsx         # Vista CONSOLIDADA (?categoria=<id>)
+│   │   │       └── categorias/$categoriaId/
+│   │   │           └── llaves.tsx     # Vista UNITARIA: un solo bracket
 │   │   └── reportes.tsx
 │   ├── components/
 │   │   ├── ui/                 # shadcn components (no modificar manualmente)
@@ -35,7 +37,11 @@ frontend/
 │   │   │   ├── TorneoForm.tsx
 │   │   │   └── TorneoList.tsx
 │   │   ├── bracket/            # ⭐ React Flow
-│   │   │   ├── BracketView.tsx        # Componente principal con ReactFlow
+│   │   │   ├── BracketView.tsx        # ReactFlow + nodeTypes
+│   │   │   ├── BracketPanel.tsx       # Bracket + registrar ganador (lo usan AMBAS vistas)
+│   │   │   ├── CategoriaLlaveNav.tsx  # Navegación entre categorías (vista consolidada)
+│   │   │   ├── CompetidoresSinCategoria.tsx  # Los que no encajaron en ninguna
+│   │   │   ├── GenerarLlavesButton.tsx
 │   │   │   ├── MatchNode.tsx          # Nodo custom para cada match
 │   │   │   └── bracketLayout.ts       # Lógica de posicionamiento de nodos
 │   │   ├── categorias/
@@ -299,6 +305,21 @@ export function crearConexionBracket(torneoId: string) {
 10. **Parsear los errores del backend con `extraerMensajeError`**, nunca `body.message`
     a secas: en las validaciones de FastEndpoints ese campo es el genérico
     `"One or more errors occurred!"`; el detalle está en `errors` (objeto `{campo: [msg]}`).
+11. **Todo contenido interactivo dentro de un nodo de React Flow necesita `pointer-events-auto`.**
+    React Flow aplica `pointer-events: none` al wrapper del nodo cuando `elementsSelectable`,
+    `nodesDraggable` y `nodesConnectable` son `false` y no hay handlers de mouse
+    (`hasPointerEvents` en su fuente). Sin eso, los botones del `MatchNode` existen, se enfocan
+    con `Tab` y responden a Enter, pero **el clic con mouse nunca llega**. No quitar esa clase.
+12. **Hay dos vistas de llaves y es deliberado — no unificarlas:**
+    - **Unitaria** `/torneos/:id/categorias/:catId/llaves` → operar un bracket concentrado.
+    - **Consolidada** `/torneos/:id/llaves?categoria=<id>` → auditar el torneo entero.
+
+    Ambas montan `BracketPanel`, así que la lógica de registrar ganador vive en un solo lugar.
+    La categoría activa de la consolidada va **en la URL**, no en `useState`: enlace compartible,
+    botón "atrás" funcional y refresh estable.
+13. **La suscripción SignalR va en `useBracketLiveUpdates(torneoId)`**, una por página, e invalida
+    con `bracketKeys.byTorneo` (prefijo) y no con `detail`: el evento `MatchActualizado` es de
+    alcance torneo. Invalidar solo `detail` deja obsoletos los brackets que no se están mirando.
 
 ## UX/UI y Accesibilidad (WCAG 2.2 AA) — obligatorio
 > Guía completa con ejemplos en Tailwind: `skills/ux-ui-guidelines.md`. Leerla antes

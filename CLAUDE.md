@@ -77,22 +77,72 @@ Torneo → Categorías → Competidores → Llaves (Bracket)
   peso, altura, escuela, responsable, telefono
 - Se carga **sin categoría** (H0004); la categoría se asigna al armar las llaves (H0005),
   clasificándolo por sus atributos (sexo, edad, peso, graduación) contra los rangos de cada categoría.
+- ⚠️ **H0011 cambia esto a N—N** (tabla `competidor_categorias`): un competidor podrá competir a la vez
+  en su categoría de Combate y en la de Formas. `categoriaId` único desaparece.
 
 ### LlaveCompetencia (Bracket)
 - id, categoriaId, ronda, posicion, competidor1Id, competidor2Id,
   ganadorId, estado
 
-## Historias de Usuario Implementadas
-| ID    | Título                  | Épica                | Puntos | Prioridad KANO |
-|-------|-------------------------|----------------------|--------|----------------|
-| H0001 | Crear torneo            | Config. inicial      | 2      | Básico         |
-| H0002 | Definir categorías      | Config. inicial      | 5      | Básico         |
-| H0003 | Editar torneo           | Config. inicial      | 3      | Performance    |
-| H0004 | Cargar competidores     | Inscripción y llaves | 3      | Básico         |
-| H0005 | Generar llaves          | Inscripción y llaves | 13     | Atractivo ⭐   |
-| H0006 | Ver categorías (Profesor)| Consulta Profesor    | 1      | Básico         |
-| H0007 | Ver competidores (Profesor)| Consulta Profesor  | 2      | Performance    |
-| H0008 | Generar reporte PDF     | Reportes Director    | 8      | Performance    |
+## Historias de Usuario
+| ID    | Título                  | Épica                | Puntos | Prioridad KANO | Estado |
+|-------|-------------------------|----------------------|--------|----------------|--------|
+| H0001 | Crear torneo            | Config. inicial      | 2      | Básico         | ✅ |
+| H0002 | Definir categorías      | Config. inicial      | 5      | Básico         | ✅ |
+| H0003 | Editar torneo           | Config. inicial      | 3      | Performance    | ✅ |
+| H0004 | Cargar competidores     | Inscripción y llaves | 3      | Básico         | ✅ |
+| H0005 | Generar llaves          | Inscripción y llaves | 13     | Atractivo ⭐   | ✅ |
+| H0006 | Ver categorías (Profesor)| Consulta Profesor    | 1      | Básico         | Pendiente |
+| H0007 | Ver competidores (Profesor)| Consulta Profesor  | 2      | Performance    | Pendiente |
+| H0008 | Generar reporte PDF     | Reportes Director    | 8      | Performance    | Pendiente |
+| H0009 | **Ciclo de vida del torneo** | Gestión del torneo | 8   | Básico         | Pendiente |
+| H0010 | Rehacer llaves de una categoría | Inscripción y llaves | 5 | Performance | Pendiente |
+| H0011 | Doble participación (Combate + Formas) | Inscripción y llaves | 13 | Atractivo | Pendiente |
+| H0012 | Categoría desierta      | Inscripción y llaves | 3      | Performance    | Pendiente |
+
+> Además hay un **bloque CRUD extra** (editar/eliminar competidor, eliminar categoría, eliminar torneo)
+> hecho entre H0004 y H0005, que no es una historia del backlog.
+> Documentado en `docs/CRUD-extra-edicion-y-borrado.pdf`.
+
+### Orden recomendado de las historias nuevas
+**H0009 → H0010 → H0012 → H0011.** No es el orden en que surgieron, sino el de sus dependencias:
+
+- **H0009 primero** porque define *cuándo* algo se puede modificar. Sin estados, "editar una categoría
+  con llaves generadas" (H0010) no tiene una respuesta segura: mientras el torneo se planifica es
+  deseable, mientras se compite es corrupción de datos. H0009 es lo que traza esa línea.
+- **H0010 después** porque es el bucle de corrección: sin poder deshacer una generación, un error de
+  clasificación es permanente.
+- **H0012 se apoya en H0010** (crear una categoría a medida implica rehacer la generación).
+- **H0011 al final** porque es el único que cambia el modelo de datos (competidor ↔ categoría pasa de
+  1—N a N—N) y toca clasificador, brackets, reportes y toda la UI. Hacerlo antes obligaría a rehacerlo
+  encima de cada historia anterior.
+
+## Ciclo de vida del torneo (H0009)
+
+Hoy el sistema modela **estados pero no transiciones**: `EstadoTorneo` existe (Borrador/Activo/Finalizado)
+pero no hay endpoint que las dispare, así que todos los torneos quedan en `Borrador` para siempre y los
+guards que dependen de "Finalizado" son correctos pero inalcanzables. H0009 cierra ese hueco.
+
+La idea rectora es que un torneo atraviesa **dos momentos con reglas opuestas**:
+
+| Momento | Estado | Qué se puede hacer | Qué está bloqueado |
+|---------|--------|--------------------|--------------------|
+| **Planificación** | `Borrador` | Crear/editar/eliminar categorías y competidores, generar y **rehacer** llaves | Registrar ganadores |
+| **Competencia** | `Activo` | Registrar ganadores, avanzar rondas | Tocar categorías, competidores o llaves |
+| **Cierre** | `Finalizado` | Consultar y generar reportes (H0008) | Toda escritura |
+
+**Tres niveles de estado, no uno:**
+- **Torneo** — `EstadoTorneo` (ya existe): Borrador → Activo → Finalizado.
+- **Categoría** — hoy solo el bool `LlavesGeneradas`. H0009 lo reemplaza por un enum `EstadoCategoria`
+  (`SinLlaves` → `LlavesGeneradas` → `EnCurso` → `Finalizada`), que permite saber si una categoría ya
+  tiene campeón sin recorrer todos sus matches.
+- **Match** — `EstadoLlave` (ya existe): Pendiente / EnCurso / Finalizado / Bye.
+
+**Reglas de transición a definir en la historia:**
+- Borrador → Activo: exige al menos una categoría con llaves generadas.
+- Activo → Finalizado: exige que todas las categorías estén Finalizadas (o forzado por el Coordinador).
+- Activo → Borrador: solo si todavía no se registró ningún ganador (si no, habría que descartar resultados).
+- El torneo pasa a Finalizado **solo** desde Activo; nunca se salta un estado.
 
 ## Convenciones de Código
 

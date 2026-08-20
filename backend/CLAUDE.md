@@ -194,10 +194,35 @@ recursos de otros torneos). Ver `docs/CRUD-extra-edicion-y-borrado.pdf`.
 | GET    | /api/v1/torneos/{torneoId}/llaves/{categoriaId} | Ver bracket de una categoría   | Todos         |
 | PUT    | /api/v1/torneos/{torneoId}/llaves/{id}/ganador  | Registrar ganador de un match  | Coordinador   |
 
+> ⚠️ `POST .../llaves/generar` es un **`EndpointWithoutRequest`** a propósito: no lleva body y el único
+> dato entra por la ruta (`Route<Guid>("torneoId")`). Con un DTO de request, FastEndpoints intentaría
+> deserializar el body en un POST y devolvería **415** porque el cliente no manda `Content-Type` si no
+> hay cuerpo. **Mismo criterio para todo POST/PUT sin body que se agregue.**
+
 ### Reportes
 | Método | Ruta                                      | Descripción              | Rol requerido |
 |--------|-------------------------------------------|--------------------------|---------------|
 | GET    | /api/v1/torneos/{torneoId}/reporte/pdf    | Descargar reporte PDF    | Director      |
+
+> ⚠️ **Todavía NO implementado** — es H0008. No existe `Endpoints/Reportes/`.
+
+### Endpoints planificados (historias H0009–H0012)
+Ninguno existe todavía; se listan para que la nomenclatura salga consistente cuando se implementen.
+El diseño completo está en `CLAUDE.md` (raíz) y `HANDOFF.md`.
+
+| Historia | Método | Ruta (propuesta)                                      | Descripción |
+|----------|--------|-------------------------------------------------------|-------------|
+| H0009    | PUT    | /api/v1/torneos/{id}/estado                            | Transición Borrador → Activo → Finalizado |
+| H0010    | DELETE | /api/v1/torneos/{torneoId}/llaves/{categoriaId}        | Borrar las llaves de una categoría para rehacerlas |
+
+- **H0009** reemplaza el bool `Categoria.LlavesGeneradas` por un enum `EstadoCategoria`
+  (`SinLlaves → LlavesGeneradas → EnCurso → Finalizada`) → requiere migración. `EstadoTorneo` y
+  `EstadoLlave` ya existen en `Domain/Enums/`.
+- **H0011** (doble participación Combate + Formas) cambia el modelo a **N—N** con tabla
+  `competidor_categorias`: no agrega endpoints nuevos pero altera `CompetidorResponse`,
+  `ClasificadorCompetidores` y `GenerarLlavesCommandHandler`.
+- **H0012** (categoría desierta) se apoya en el POST de categorías ya existente; lo nuevo es representar
+  al competidor único como campeón en vez de como "categoría sin llaves".
 
 ## Mapeo con Mapster
 ```csharp
