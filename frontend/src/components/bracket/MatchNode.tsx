@@ -17,8 +17,12 @@ export function MatchNode({ data }: NodeProps<MatchFlowNode>) {
   const esBye = match.estado === 'Bye';
   const finalizado = match.estado === 'Finalizado';
 
+  // `pointer-events-auto` es obligatorio: como el bracket se renderiza con nodesDraggable,
+  // nodesConnectable y elementsSelectable en false, React Flow le aplica `pointer-events: none`
+  // al wrapper del nodo y los clics nunca llegarían a los botones de competidor. Reactivarlo
+  // acá deja el nodo interactivo sin habilitar drag ni selección.
   return (
-    <div className="w-[220px] overflow-hidden rounded-lg border bg-card text-card-foreground shadow-sm">
+    <div className="pointer-events-auto w-[220px] overflow-hidden rounded-lg border bg-card text-card-foreground shadow-sm">
       <Handle type="target" position={Position.Left} className="!bg-muted-foreground" />
       <Handle type="source" position={Position.Right} className="!bg-muted-foreground" />
 
