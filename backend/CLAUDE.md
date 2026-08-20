@@ -160,13 +160,32 @@ public class GetTorneosQueryHandler : IRequestHandler<GetTorneosQuery, List<Torn
 | GET    | /api/v1/torneos/{torneoId}/categorias         | Listar categorías       | Todos         |
 | POST   | /api/v1/torneos/{torneoId}/categorias         | Crear categoría         | Coordinador   |
 | PUT    | /api/v1/torneos/{torneoId}/categorias/{id}    | Editar categoría        | Coordinador   |
+| DELETE | /api/v1/torneos/{torneoId}/categorias/{id}    | Eliminar categoría      | Coordinador   |
 
 ### Competidores
 | Método | Ruta                                            | Descripción                  | Rol requerido |
 |--------|-------------------------------------------------|------------------------------|---------------|
 | GET    | /api/v1/torneos/{torneoId}/competidores          | Listar todos                 | Coordinador   |
-| GET    | /api/v1/torneos/{torneoId}/competidores/escuela/{escuela} | Listar por escuela | Profesor      |
 | POST   | /api/v1/torneos/{torneoId}/competidores          | Cargar competidor            | Coordinador   |
+| PUT    | /api/v1/torneos/{torneoId}/competidores/{id}     | Editar competidor            | Coordinador   |
+| DELETE | /api/v1/torneos/{torneoId}/competidores/{id}     | Eliminar competidor          | Coordinador   |
+
+> ⚠️ **Todavía NO implementado:** `GET /api/v1/torneos/{torneoId}/competidores/escuela/{escuela}`
+> (listar por escuela, rol Profesor) — pertenece a **H0007**. El repositorio ya expone
+> `ICompetidorRepository.GetByEscuelaAsync`, pero **no existe el endpoint** que lo consuma.
+
+### Guards de estado en edición y borrado
+Los guards viven en el **Command Handler** (no en el endpoint) y devuelven **409 `ConflictException`**:
+
+| Operación                      | Condición requerida                                     |
+|--------------------------------|---------------------------------------------------------|
+| Eliminar torneo                | Estado **Borrador**                                      |
+| Editar/eliminar categoría      | Torneo **no Finalizado** **y** `LlavesGeneradas == false` |
+| Editar/eliminar competidor     | Torneo **no Finalizado**                                 |
+
+Además, **todas** verifican que el recurso pertenezca al torneo de la ruta
+(`entidad.TorneoId != request.TorneoId` → **404**, no 403: evita filtrar la existencia de
+recursos de otros torneos). Ver `docs/CRUD-extra-edicion-y-borrado.pdf`.
 
 ### Llaves (Bracket)
 | Método | Ruta                                        | Descripción                        | Rol requerido |
