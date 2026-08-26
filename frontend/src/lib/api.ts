@@ -12,6 +12,7 @@ import type {
   MisCompetidores,
   Match,
   Torneo,
+  TorneoEstado,
   UpdateCompetidorInput,
   UpdateTorneoInput,
 } from '@/types';
@@ -88,6 +89,12 @@ export const api = {
       apiFetch<Torneo>('/api/v1/torneos', { method: 'POST', body: JSON.stringify(data) }),
     editar: (id: string, data: UpdateTorneoInput) =>
       apiFetch<Torneo>(`/api/v1/torneos/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    // Transición del ciclo de vida (H0009). `forzar` solo aplica a Activo → Finalizado.
+    cambiarEstado: (id: string, estado: TorneoEstado, forzar = false) =>
+      apiFetch<Torneo>(`/api/v1/torneos/${id}/estado`, {
+        method: 'PUT',
+        body: JSON.stringify({ estado, forzar }),
+      }),
     eliminar: (id: string) => apiFetch<void>(`/api/v1/torneos/${id}`, { method: 'DELETE' }),
   },
   categorias: {

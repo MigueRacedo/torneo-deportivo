@@ -15,6 +15,7 @@ namespace TorneoDeportivo.Application.Features.Llaves.Commands.RegistrarGanador;
 public class RegistrarGanadorCommandHandler(
     ILlaveCompetenciaRepository llaveRepo,
     ICategoriaRepository categoriaRepo,
+    ITorneoRepository torneoRepo,
     IBracketNotifier notifier) : IRequestHandler<RegistrarGanadorCommand, MatchResponse>
 {
     /// <summary>
@@ -23,6 +24,14 @@ public class RegistrarGanadorCommandHandler(
     /// </summary>
     public async Task<MatchResponse> Handle(RegistrarGanadorCommand request, CancellationToken ct)
     {
+        var torneo = await torneoRepo.GetByIdAsync(request.TorneoId, ct)
+            ?? throw new NotFoundException(nameof(Torneo), request.TorneoId);
+
+        // Registrar resultados es la actividad del torneo en competencia: en Borrador todavía se está
+        // planificando (y las llaves se pueden rehacer), y en Finalizado ya no se escribe nada.
+        if (torneo.Estado != EstadoTorneo.Activo)
+            throw new ConflictException("Solo se pueden registrar ganadores con el torneo Activo.");
+
         var llave = await llaveRepo.GetByIdAsync(request.LlaveId, ct)
             ?? throw new NotFoundException(nameof(LlaveCompetencia), request.LlaveId);
 
@@ -67,6 +76,20 @@ public class RegistrarGanadorCommandHandler(
         }
 
         await llaveRepo.UpdateRangeAsync(modificadas, ct);
+
+        // El estado de la categoría se deriva de sus matches, no se maneja a mano: apenas hay un resultado
+        // pasa a EnCurso, y cuando no queda ningún enfrentamiento pendiente queda Finalizada. Guardarlo
+        // evita recorrer todo el bracket cada vez que alguien pregunta si la categoría ya tiene campeón.
+        var estadoNuevo = todas.All(l => l.Estado is EstadoLlave.Finalizado or EstadoLlave.Bye)
+            ? EstadoCategoria.Finalizada
+            : EstadoCategoria.EnCurso;
+
+        if (categoria.Estado != estadoNuevo)
+        {
+            categoria.Estado = estadoNuevo;
+            await categoriaRepo.UpdateAsync(categoria, ct);
+        }
+
         await notifier.NotificarMatchActualizadoAsync(request.TorneoId, categoria.Id, ct);
 
         return actual.ToMatchResponse();

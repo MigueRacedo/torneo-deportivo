@@ -19,6 +19,14 @@ const TIPO_PILL: Record<Categoria['tipoCompetencia'], string> = {
   Combate: 'bg-amber-100 text-amber-900',
 };
 
+// Etiqueta de la etapa de la categoría. Nunca solo color: cada estado lleva su texto.
+const ESTADO_CATEGORIA_LABEL: Record<Categoria['estado'], string> = {
+  SinLlaves: 'Llaves sin generar',
+  LlavesGeneradas: '✓ Llaves generadas',
+  EnCurso: '● En curso',
+  Finalizada: '✓ Finalizada — hay campeón',
+};
+
 /** Texto de un rango numérico abierto (edad/peso): "Hasta X", "X en adelante", "A–B" o null. */
 function textoRango(min: number | null | undefined, max: number | null | undefined, unidad: string): string | null {
   const tieneMin = min != null;
@@ -91,7 +99,7 @@ export function CategoriaCard({ categoria }: { categoria: Categoria }) {
       {/* El estado de las llaves se dice con texto, no solo con la presencia del enlace:
           sin esto, un Profesor no distingue "no hay llaves" de "no tengo permiso para verlas". */}
       <p className="text-sm leading-relaxed text-muted-foreground text-left">
-        {categoria.llavesGeneradas ? '✓ Llaves generadas' : 'Llaves sin generar'}
+        {ESTADO_CATEGORIA_LABEL[categoria.estado]}
       </p>
 
       <div className="flex flex-wrap items-center gap-4 text-sm leading-relaxed">

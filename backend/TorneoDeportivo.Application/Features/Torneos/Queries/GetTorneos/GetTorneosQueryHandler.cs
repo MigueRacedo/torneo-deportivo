@@ -14,7 +14,7 @@ public class GetTorneosQueryHandler(ITorneoRepository repo) : IRequestHandler<Ge
     /// </summary>
     public async Task<List<TorneoResponse>> Handle(GetTorneosQuery request, CancellationToken ct)
     {
-        var torneos = await repo.GetAllActivosAsync(ct);
+        var torneos = await repo.GetAllAsync(ct);
         return torneos.Adapt<List<TorneoResponse>>();
     }
 }

@@ -22,7 +22,9 @@ public class CategoriaConfiguration : IEntityTypeConfiguration<Categoria>
         builder.Property(c => c.RangoPesoMax).HasPrecision(5, 2);
         builder.Property(c => c.RangoGraduacionMin).IsRequired().HasMaxLength(50);
         builder.Property(c => c.RangoGraduacionMax).IsRequired().HasMaxLength(50);
-        builder.Property(c => c.LlavesGeneradas).HasDefaultValue(false);
+        builder.Property(c => c.Estado).HasConversion<string>().HasMaxLength(30);
+        // Derivada de Estado: no es una columna.
+        builder.Ignore(c => c.LlavesGeneradas);
         // La categoría del competidor es opcional (se asigna al armar las llaves); al eliminar la categoría,
         // los competidores quedan sin categoría en lugar de bloquear la operación.
         builder.HasMany(c => c.Competidores).WithOne(comp => comp.Categoria)

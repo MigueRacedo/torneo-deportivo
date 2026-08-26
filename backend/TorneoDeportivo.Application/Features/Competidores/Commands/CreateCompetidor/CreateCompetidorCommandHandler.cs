@@ -23,8 +23,8 @@ public class CreateCompetidorCommandHandler(
         var torneo = await torneoRepo.GetByIdAsync(request.TorneoId, ct)
             ?? throw new NotFoundException(nameof(Torneo), request.TorneoId);
 
-        if (torneo.Estado == EstadoTorneo.Finalizado)
-            throw new ConflictException("No se pueden cargar competidores en un torneo finalizado.");
+        if (torneo.Estado != EstadoTorneo.Borrador)
+            throw new ConflictException("No se pueden cargar competidores en un torneo que ya arrancó. Solo se puede en Borrador.");
 
         var competidor = new Competidor
         {

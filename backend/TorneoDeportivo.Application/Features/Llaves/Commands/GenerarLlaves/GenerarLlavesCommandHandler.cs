@@ -1,6 +1,7 @@
 using MediatR;
 using TorneoDeportivo.Application.Common.Exceptions;
 using TorneoDeportivo.Domain.Entities;
+using TorneoDeportivo.Domain.Enums;
 using TorneoDeportivo.Domain.Interfaces;
 
 namespace TorneoDeportivo.Application.Features.Llaves.Commands.GenerarLlaves;
@@ -24,6 +25,10 @@ public class GenerarLlavesCommandHandler(
     {
         var torneo = await torneoRepo.GetByIdAsync(request.TorneoId, ct)
             ?? throw new NotFoundException(nameof(Torneo), request.TorneoId);
+
+        // Armar llaves es una tarea de planificación: una vez que el torneo arranca, el bracket queda fijo.
+        if (torneo.Estado != EstadoTorneo.Borrador)
+            throw new ConflictException("Solo se pueden generar llaves con el torneo en Borrador.");
 
         var categorias = await categoriaRepo.GetByTorneoIdAsync(torneo.Id, ct);
         var competidores = await competidorRepo.GetByTorneoIdAsync(torneo.Id, ct);
@@ -67,7 +72,7 @@ public class GenerarLlavesCommandHandler(
             var llaves = BracketGeneratorService.Generar(categoria.Id, deLaCategoria);
             await llaveRepo.AddRangeAsync(llaves, ct);
 
-            categoria.LlavesGeneradas = true;
+            categoria.Estado = EstadoCategoria.LlavesGeneradas;
             await categoriaRepo.UpdateAsync(categoria, ct);
 
             resultados.Add(new(categoria.Id, categoria.Nombre, deLaCategoria.Count, true, null));

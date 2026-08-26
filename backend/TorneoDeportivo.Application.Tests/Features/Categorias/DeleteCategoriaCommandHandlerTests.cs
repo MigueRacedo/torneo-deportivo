@@ -72,7 +72,7 @@ public class DeleteCategoriaCommandHandlerTests
         var torneoId = Guid.NewGuid();
         var cat = Substitute.For<ICategoriaRepository>();
         var categoria = CategoriaExistente(id, torneoId);
-        categoria.LlavesGeneradas = true;
+        categoria.Estado = EstadoCategoria.LlavesGeneradas;
         cat.GetByIdAsync(id, Arg.Any<CancellationToken>()).Returns(categoria);
         var handler = new DeleteCategoriaCommandHandler(cat, TorneoRepoCon(torneoId, EstadoTorneo.Borrador));
 
@@ -81,14 +81,17 @@ public class DeleteCategoriaCommandHandlerTests
         await cat.DidNotReceive().DeleteAsync(Arg.Any<Categoria>(), Arg.Any<CancellationToken>());
     }
 
-    [Fact]
-    public async Task Handle_TorneoFinalizado_LanzaConflictException()
+    // La planificación solo se toca en Borrador: en Activo se compite y en Finalizado no se escribe.
+    [Theory]
+    [InlineData(EstadoTorneo.Activo)]
+    [InlineData(EstadoTorneo.Finalizado)]
+    public async Task Handle_TorneoQueYaArranco_LanzaConflictException(EstadoTorneo estado)
     {
         var id = Guid.NewGuid();
         var torneoId = Guid.NewGuid();
         var cat = Substitute.For<ICategoriaRepository>();
         cat.GetByIdAsync(id, Arg.Any<CancellationToken>()).Returns(CategoriaExistente(id, torneoId));
-        var handler = new DeleteCategoriaCommandHandler(cat, TorneoRepoCon(torneoId, EstadoTorneo.Finalizado));
+        var handler = new DeleteCategoriaCommandHandler(cat, TorneoRepoCon(torneoId, estado));
 
         await Assert.ThrowsAsync<ConflictException>(
             () => handler.Handle(new DeleteCategoriaCommand(id, torneoId), CancellationToken.None));

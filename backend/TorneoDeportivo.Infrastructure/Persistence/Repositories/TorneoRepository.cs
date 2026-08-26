@@ -15,8 +15,8 @@ public class TorneoRepository(TorneoDbContext db) : ITorneoRepository
         db.Torneos.FirstOrDefaultAsync(t => t.Id == id, ct);
 
     /// <summary>Obtiene todos los torneos que no están en estado Finalizado.</summary>
-    public Task<List<Torneo>> GetAllActivosAsync(CancellationToken ct) =>
-        db.Torneos.Where(t => t.Estado != EstadoTorneo.Finalizado).ToListAsync(ct);
+    public Task<List<Torneo>> GetAllAsync(CancellationToken ct) =>
+        db.Torneos.OrderByDescending(t => t.Fecha).ToListAsync(ct);
 
     /// <summary>Agrega un nuevo torneo y guarda los cambios.</summary>
     public async Task AddAsync(Torneo torneo, CancellationToken ct)

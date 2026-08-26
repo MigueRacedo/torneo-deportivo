@@ -25,8 +25,8 @@ public class UpdateCompetidorCommandHandler(
             throw new NotFoundException(nameof(Competidor), request.Id);
 
         var torneo = await torneoRepo.GetByIdAsync(competidor.TorneoId, ct);
-        if (torneo?.Estado == EstadoTorneo.Finalizado)
-            throw new ConflictException("No se pueden editar los competidores de un torneo finalizado.");
+        if (torneo is null || torneo.Estado != EstadoTorneo.Borrador)
+            throw new ConflictException("No se pueden editar los competidores de un torneo que ya arrancó. Solo se puede en Borrador.");
 
         competidor.Nombre = request.Nombre;
         competidor.Apellido = request.Apellido;

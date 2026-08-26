@@ -94,14 +94,17 @@ public class UpdateCategoriaCommandHandlerTests
         await repo.DidNotReceive().UpdateAsync(Arg.Any<Categoria>(), Arg.Any<CancellationToken>());
     }
 
-    [Fact]
-    public async Task Handle_TorneoFinalizado_LanzaConflictException()
+    // La planificación solo se toca en Borrador: en Activo se compite y en Finalizado no se escribe.
+    [Theory]
+    [InlineData(EstadoTorneo.Activo)]
+    [InlineData(EstadoTorneo.Finalizado)]
+    public async Task Handle_TorneoQueYaArranco_LanzaConflictException(EstadoTorneo estado)
     {
         var id = Guid.NewGuid();
         var torneoId = Guid.NewGuid();
         var repo = Substitute.For<ICategoriaRepository>();
         repo.GetByIdAsync(id, Arg.Any<CancellationToken>()).Returns(CategoriaExistente(id, torneoId));
-        var handler = new UpdateCategoriaCommandHandler(repo, TorneoRepoCon(torneoId, EstadoTorneo.Finalizado));
+        var handler = new UpdateCategoriaCommandHandler(repo, TorneoRepoCon(torneoId, estado));
 
         await Assert.ThrowsAsync<ConflictException>(
             () => handler.Handle(Comando(id, torneoId), CancellationToken.None));

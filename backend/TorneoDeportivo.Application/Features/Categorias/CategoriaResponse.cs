@@ -22,4 +22,5 @@ public record CategoriaResponse(
     string RangoGraduacionMin,
     string RangoGraduacionMax,
     bool LlavesGeneradas,
+    string Estado,
     int? TotalCompetidores = null);

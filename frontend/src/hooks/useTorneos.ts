@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
-import type { UpdateTorneoInput } from '@/types';
+import { categoriaKeys } from '@/hooks/useCategorias';
+import type { TorneoEstado, UpdateTorneoInput } from '@/types';
 
 export const torneoKeys = {
   all: ['torneos'] as const,
@@ -48,3 +49,23 @@ export function useEliminarTorneo() {
     onSuccess: () => qc.invalidateQueries({ queryKey: torneoKeys.all }),
   });
 }
+/**
+ * Mueve el torneo por su ciclo de vida (H0009).
+ *
+ * Invalida el detalle, el listado y las categorías: el estado del torneo cambia qué acciones se
+ * habilitan en casi toda la app, así que dejar cualquiera de esas queries vieja mostraría botones
+ * que el backend ya rechaza.
+ */
+export function useCambiarEstadoTorneo(id: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ estado, forzar }: { estado: TorneoEstado; forzar?: boolean }) =>
+      api.torneos.cambiarEstado(id, estado, forzar),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: torneoKeys.all });
+      qc.invalidateQueries({ queryKey: torneoKeys.detail(id) });
+      qc.invalidateQueries({ queryKey: categoriaKeys.byTorneo(id) });
+    },
+  });
+}
+

@@ -21,8 +21,17 @@ public class Categoria
     public decimal? RangoPesoMax { get; set; }
     public string RangoGraduacionMin { get; set; } = string.Empty;
     public string RangoGraduacionMax { get; set; } = string.Empty;
-    // True una vez que se generaron las llaves de esta categoría (impide regenerarlas).
-    public bool LlavesGeneradas { get; set; }
+    /// <summary>
+    /// Etapa del ciclo de vida de la categoría (H0009). Reemplaza al viejo booleano de llaves generadas.
+    /// </summary>
+    public EstadoCategoria Estado { get; set; } = EstadoCategoria.SinLlaves;
+
+    /// <summary>
+    /// True desde que se armó el bracket. Es derivada de <see cref="Estado"/> y no se persiste: la
+    /// pregunta "¿esta categoría ya tiene llaves?" se sigue haciendo en varios lugares (guards de
+    /// edición y borrado, clasificador, UI) y conviene que tenga una sola fuente de verdad.
+    /// </summary>
+    public bool LlavesGeneradas => Estado >= EstadoCategoria.LlavesGeneradas;
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 

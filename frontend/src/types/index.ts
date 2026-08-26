@@ -1,4 +1,7 @@
 export type TorneoEstado = 'Borrador' | 'Activo' | 'Finalizado';
+
+/** Etapa del ciclo de vida de una categoría (H0009). Reemplaza al viejo booleano de llaves. */
+export type EstadoCategoria = 'SinLlaves' | 'LlavesGeneradas' | 'EnCurso' | 'Finalizada';
 export type RolUsuario = 'Coordinador' | 'Profesor' | 'Director';
 
 export interface Usuario {
@@ -76,7 +79,9 @@ export interface Categoria {
   rangoPesoMax?: number | null;
   rangoGraduacionMin: string;
   rangoGraduacionMax: string;
+  // Derivado de estado: true desde LlavesGeneradas en adelante.
   llavesGeneradas: boolean;
+  estado: EstadoCategoria;
   // Cantidad de competidores asignados. Solo viene en el listado de categorías (H0006);
   // undefined significa "no calculado", distinto de 0 ("sin competidores").
   totalCompetidores?: number;

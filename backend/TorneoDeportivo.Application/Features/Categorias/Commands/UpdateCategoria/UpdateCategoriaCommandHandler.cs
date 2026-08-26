@@ -30,8 +30,8 @@ public class UpdateCategoriaCommandHandler(ICategoriaRepository repo, ITorneoRep
             throw new ConflictException("No se puede editar una categoría con llaves generadas.");
 
         var torneo = await torneoRepo.GetByIdAsync(categoria.TorneoId, ct);
-        if (torneo?.Estado == EstadoTorneo.Finalizado)
-            throw new ConflictException("No se pueden editar las categorías de un torneo finalizado.");
+        if (torneo is null || torneo.Estado != EstadoTorneo.Borrador)
+            throw new ConflictException("No se pueden editar las categorías de un torneo que ya arrancó. Solo se puede en Borrador.");
 
         var tipoCompetencia = Enum.Parse<TipoCompetencia>(request.TipoCompetencia);
         // El peso solo aplica a Combate; en Formas se descarta cualquier valor recibido.

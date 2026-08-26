@@ -41,24 +41,29 @@ public class RegistrarGanadorCommandHandlerTests
         return (match, siguiente);
     }
 
-    private (ILlaveCompetenciaRepository llave, ICategoriaRepository cat, IBracketNotifier notif)
-        Deps(LlaveCompetencia match, LlaveCompetencia siguiente, Guid? categoriaTorneoId = null)
+    private (ILlaveCompetenciaRepository llave, ICategoriaRepository cat, ITorneoRepository tor, IBracketNotifier notif)
+        Deps(LlaveCompetencia match, LlaveCompetencia siguiente, Guid? categoriaTorneoId = null,
+             EstadoTorneo estadoTorneo = EstadoTorneo.Activo)
     {
+        var tor = Substitute.For<ITorneoRepository>();
+        tor.GetByIdAsync(_torneoId, Arg.Any<CancellationToken>())
+            .Returns(new Torneo { Id = _torneoId, Estado = estadoTorneo });
+
         var llave = Substitute.For<ILlaveCompetenciaRepository>();
         llave.GetByIdAsync(match.Id, Arg.Any<CancellationToken>()).Returns(match);
         llave.GetByCategoriaIdAsync(_categoriaId, Arg.Any<CancellationToken>()).Returns([match, siguiente]);
         var cat = Substitute.For<ICategoriaRepository>();
         cat.GetByIdAsync(_categoriaId, Arg.Any<CancellationToken>())
             .Returns(new Categoria { Id = _categoriaId, TorneoId = categoriaTorneoId ?? _torneoId, Nombre = "Cadetes" });
-        return (llave, cat, Substitute.For<IBracketNotifier>());
+        return (llave, cat, tor, Substitute.For<IBracketNotifier>());
     }
 
     [Fact]
     public async Task Handle_GanadorValido_RegistraYPropagaYNotifica()
     {
         var (match, siguiente) = Llaves();
-        var (llave, cat, notif) = Deps(match, siguiente);
-        var handler = new RegistrarGanadorCommandHandler(llave, cat, notif);
+        var (llave, cat, tor, notif) = Deps(match, siguiente);
+        var handler = new RegistrarGanadorCommandHandler(llave, cat, tor, notif);
 
         var result = await handler.Handle(new RegistrarGanadorCommand(_torneoId, match.Id, _comp1), CancellationToken.None);
 
@@ -79,8 +84,8 @@ public class RegistrarGanadorCommandHandlerTests
         var (match, siguiente) = Llaves();
         match.Competidor2Id = null;
         match.Competidor2 = null;
-        var (llave, cat, notif) = Deps(match, siguiente);
-        var handler = new RegistrarGanadorCommandHandler(llave, cat, notif);
+        var (llave, cat, tor, notif) = Deps(match, siguiente);
+        var handler = new RegistrarGanadorCommandHandler(llave, cat, tor, notif);
 
         await Assert.ThrowsAsync<ConflictException>(
             () => handler.Handle(new RegistrarGanadorCommand(_torneoId, match.Id, _comp1), CancellationToken.None));
@@ -94,8 +99,8 @@ public class RegistrarGanadorCommandHandlerTests
         var (match, siguiente) = Llaves();
         match.Estado = EstadoLlave.Finalizado;
         match.GanadorId = _comp1;
-        var (llave, cat, notif) = Deps(match, siguiente);
-        var handler = new RegistrarGanadorCommandHandler(llave, cat, notif);
+        var (llave, cat, tor, notif) = Deps(match, siguiente);
+        var handler = new RegistrarGanadorCommandHandler(llave, cat, tor, notif);
 
         await Assert.ThrowsAsync<ConflictException>(
             () => handler.Handle(new RegistrarGanadorCommand(_torneoId, match.Id, _comp2), CancellationToken.None));
@@ -109,8 +114,8 @@ public class RegistrarGanadorCommandHandlerTests
         match.Competidor2Id = null;
         match.Competidor2 = null;
         match.GanadorId = _comp1;
-        var (llave, cat, notif) = Deps(match, siguiente);
-        var handler = new RegistrarGanadorCommandHandler(llave, cat, notif);
+        var (llave, cat, tor, notif) = Deps(match, siguiente);
+        var handler = new RegistrarGanadorCommandHandler(llave, cat, tor, notif);
 
         await Assert.ThrowsAsync<ConflictException>(
             () => handler.Handle(new RegistrarGanadorCommand(_torneoId, match.Id, _comp1), CancellationToken.None));
@@ -120,8 +125,8 @@ public class RegistrarGanadorCommandHandlerTests
     public async Task Handle_GanadorNoEsDelMatch_LanzaConflictException()
     {
         var (match, siguiente) = Llaves();
-        var (llave, cat, notif) = Deps(match, siguiente);
-        var handler = new RegistrarGanadorCommandHandler(llave, cat, notif);
+        var (llave, cat, tor, notif) = Deps(match, siguiente);
+        var handler = new RegistrarGanadorCommandHandler(llave, cat, tor, notif);
 
         await Assert.ThrowsAsync<ConflictException>(
             () => handler.Handle(new RegistrarGanadorCommand(_torneoId, match.Id, Guid.NewGuid()), CancellationToken.None));
@@ -131,20 +136,76 @@ public class RegistrarGanadorCommandHandlerTests
     [Fact]
     public async Task Handle_MatchInexistente_LanzaNotFoundException()
     {
+        // El torneo existe y está Activo: así el 404 es por el match y no por el guard de estado.
+        var tor = Substitute.For<ITorneoRepository>();
+        tor.GetByIdAsync(_torneoId, Arg.Any<CancellationToken>())
+            .Returns(new Torneo { Id = _torneoId, Estado = EstadoTorneo.Activo });
         var llave = Substitute.For<ILlaveCompetenciaRepository>();
         llave.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns((LlaveCompetencia?)null);
-        var handler = new RegistrarGanadorCommandHandler(llave, Substitute.For<ICategoriaRepository>(), Substitute.For<IBracketNotifier>());
+        var handler = new RegistrarGanadorCommandHandler(
+            llave, Substitute.For<ICategoriaRepository>(), tor, Substitute.For<IBracketNotifier>());
 
         await Assert.ThrowsAsync<NotFoundException>(
             () => handler.Handle(new RegistrarGanadorCommand(_torneoId, Guid.NewGuid(), _comp1), CancellationToken.None));
+    }
+
+    [Theory]
+    [InlineData(EstadoTorneo.Borrador)]
+    [InlineData(EstadoTorneo.Finalizado)]
+    public async Task Handle_TorneoQueNoEstaActivo_LanzaConflictException(EstadoTorneo estado)
+    {
+        // En Borrador todavía se planifica (y las llaves se pueden rehacer); en Finalizado no se escribe.
+        var (match, siguiente) = Llaves();
+        var (llave, cat, tor, notif) = Deps(match, siguiente, estadoTorneo: estado);
+        var handler = new RegistrarGanadorCommandHandler(llave, cat, tor, notif);
+
+        await Assert.ThrowsAsync<ConflictException>(
+            () => handler.Handle(new RegistrarGanadorCommand(_torneoId, match.Id, _comp1), CancellationToken.None));
+        await llave.DidNotReceive().UpdateRangeAsync(Arg.Any<IEnumerable<LlaveCompetencia>>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_PrimerGanador_DejaLaCategoriaEnCurso()
+    {
+        var (match, siguiente) = Llaves();
+        var (llave, cat, tor, notif) = Deps(match, siguiente);
+        var categoria = await cat.GetByIdAsync(_categoriaId, CancellationToken.None);
+        var handler = new RegistrarGanadorCommandHandler(llave, cat, tor, notif);
+
+        await handler.Handle(new RegistrarGanadorCommand(_torneoId, match.Id, _comp1), CancellationToken.None);
+
+        // Queda un match pendiente (el de la ronda 2), así que la categoría está compitiendo, no terminada.
+        Assert.Equal(EstadoCategoria.EnCurso, categoria!.Estado);
+        await cat.Received(1).UpdateAsync(categoria, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_UltimoMatchResuelto_DejaLaCategoriaFinalizada()
+    {
+        // Un bracket de un solo match: al resolverlo no queda nada pendiente.
+        var (match, _) = Llaves();
+        var llave = Substitute.For<ILlaveCompetenciaRepository>();
+        llave.GetByIdAsync(match.Id, Arg.Any<CancellationToken>()).Returns(match);
+        llave.GetByCategoriaIdAsync(_categoriaId, Arg.Any<CancellationToken>()).Returns([match]);
+        var categoria = new Categoria { Id = _categoriaId, TorneoId = _torneoId, Nombre = "Cadetes" };
+        var cat = Substitute.For<ICategoriaRepository>();
+        cat.GetByIdAsync(_categoriaId, Arg.Any<CancellationToken>()).Returns(categoria);
+        var tor = Substitute.For<ITorneoRepository>();
+        tor.GetByIdAsync(_torneoId, Arg.Any<CancellationToken>())
+            .Returns(new Torneo { Id = _torneoId, Estado = EstadoTorneo.Activo });
+        var handler = new RegistrarGanadorCommandHandler(llave, cat, tor, Substitute.For<IBracketNotifier>());
+
+        await handler.Handle(new RegistrarGanadorCommand(_torneoId, match.Id, _comp1), CancellationToken.None);
+
+        Assert.Equal(EstadoCategoria.Finalizada, categoria.Estado);
     }
 
     [Fact]
     public async Task Handle_MatchDeOtroTorneo_LanzaNotFoundException()
     {
         var (match, siguiente) = Llaves();
-        var (llave, cat, notif) = Deps(match, siguiente, categoriaTorneoId: Guid.NewGuid());
-        var handler = new RegistrarGanadorCommandHandler(llave, cat, notif);
+        var (llave, cat, tor, notif) = Deps(match, siguiente, categoriaTorneoId: Guid.NewGuid());
+        var handler = new RegistrarGanadorCommandHandler(llave, cat, tor, notif);
 
         await Assert.ThrowsAsync<NotFoundException>(
             () => handler.Handle(new RegistrarGanadorCommand(_torneoId, match.Id, _comp1), CancellationToken.None));

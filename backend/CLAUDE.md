@@ -152,6 +152,7 @@ public class GetTorneosQueryHandler : IRequestHandler<GetTorneosQuery, List<Torn
 | GET    | /api/v1/torneos/{id}          | Obtener torneo           | Todos         |
 | POST   | /api/v1/torneos               | Crear torneo             | Coordinador   |
 | PUT    | /api/v1/torneos/{id}          | Editar torneo            | Coordinador   |
+| PUT    | /api/v1/torneos/{id}/estado   | Transición de ciclo de vida | Coordinador |
 | DELETE | /api/v1/torneos/{id}          | Eliminar torneo          | Coordinador   |
 
 ### Categorías
@@ -206,18 +207,14 @@ recursos de otros torneos). Ver `docs/CRUD-extra-edicion-y-borrado.pdf`.
 
 > ⚠️ **Todavía NO implementado** — es H0008. No existe `Endpoints/Reportes/`.
 
-### Endpoints planificados (historias H0009–H0012)
-Ninguno existe todavía; se listan para que la nomenclatura salga consistente cuando se implementen.
+### Endpoints planificados (historias H0010–H0012)
+Se listan para que la nomenclatura salga consistente cuando se implementen.
 El diseño completo está en `CLAUDE.md` (raíz) y `docs/backlog.md`.
 
 | Historia | Método | Ruta (propuesta)                                      | Descripción |
 |----------|--------|-------------------------------------------------------|-------------|
-| H0009    | PUT    | /api/v1/torneos/{id}/estado                            | Transición Borrador → Activo → Finalizado |
 | H0010    | DELETE | /api/v1/torneos/{torneoId}/llaves/{categoriaId}        | Borrar las llaves de una categoría para rehacerlas |
 
-- **H0009** reemplaza el bool `Categoria.LlavesGeneradas` por un enum `EstadoCategoria`
-  (`SinLlaves → LlavesGeneradas → EnCurso → Finalizada`) → requiere migración. `EstadoTorneo` y
-  `EstadoLlave` ya existen en `Domain/Enums/`.
 - **H0011** (doble participación Combate + Formas) cambia el modelo a **N—N** con tabla
   `competidor_categorias`: no agrega endpoints nuevos pero altera `CompetidorResponse`,
   `ClasificadorCompetidores` y `GenerarLlavesCommandHandler`.

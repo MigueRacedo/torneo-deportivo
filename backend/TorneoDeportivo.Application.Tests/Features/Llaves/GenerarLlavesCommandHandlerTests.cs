@@ -20,7 +20,7 @@ public class GenerarLlavesCommandHandlerTests
         RangoEdadMax = 14,
         RangoGraduacionMin = "CinturonBlanco",
         RangoGraduacionMax = "CinturonVerde",
-        LlavesGeneradas = false
+        Estado = EstadoCategoria.SinLlaves
     };
 
     private static Competidor Competidor(Guid torneoId, Sexo sexo = Sexo.M, int edad = 13,
@@ -108,7 +108,7 @@ public class GenerarLlavesCommandHandlerTests
     {
         var torneoId = Guid.NewGuid();
         var categoria = Categoria(torneoId);
-        categoria.LlavesGeneradas = true;
+        categoria.Estado = EstadoCategoria.LlavesGeneradas;
         var competidores = new List<Competidor>
         {
             new() { Id = Guid.NewGuid(), TorneoId = torneoId, CategoriaId = categoria.Id, Sexo = Sexo.M, Edad = 13, Graduacion = "CinturonAmarillo" },
@@ -129,7 +129,7 @@ public class GenerarLlavesCommandHandlerTests
         // quedarían con categoría pero fuera de la llave, y sin figurar como sin clasificar (invisibles).
         var torneoId = Guid.NewGuid();
         var conLlaves = Categoria(torneoId);
-        conLlaves.LlavesGeneradas = true;
+        conLlaves.Estado = EstadoCategoria.LlavesGeneradas;
         var nuevo = Competidor(torneoId);
         var competidores = new List<Competidor> { nuevo };
 
@@ -148,7 +148,7 @@ public class GenerarLlavesCommandHandlerTests
         // Con dos categorías que encajan, la que ya tiene llaves se saltea y gana la que todavía puede recibir.
         var torneoId = Guid.NewGuid();
         var conLlaves = Categoria(torneoId);
-        conLlaves.LlavesGeneradas = true;
+        conLlaves.Estado = EstadoCategoria.LlavesGeneradas;
         var libre = Categoria(torneoId);
         var competidores = new List<Competidor> { Competidor(torneoId), Competidor(torneoId) };
 

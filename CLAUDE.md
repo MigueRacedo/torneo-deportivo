@@ -95,7 +95,7 @@ Torneo → Categorías → Competidores → Llaves (Bracket)
 | H0006 | Ver categorías (Profesor)| Consulta Profesor    | 1      | Básico         | ✅ |
 | H0007 | Ver competidores (Profesor)| Consulta Profesor  | 2      | Performance    | ✅ |
 | H0008 | Generar reporte PDF     | Reportes Director    | 8      | Performance    | Pendiente |
-| H0009 | **Ciclo de vida del torneo** | Gestión del torneo | 8   | Básico         | Pendiente |
+| H0009 | **Ciclo de vida del torneo** | Gestión del torneo | 8   | Básico         | ✅ |
 | H0010 | Rehacer llaves de una categoría | Inscripción y llaves | 5 | Performance | Pendiente |
 | H0011 | Doble participación (Combate + Formas) | Inscripción y llaves | 13 | Atractivo | Pendiente |
 | H0012 | Categoría desierta      | Inscripción y llaves | 3      | Performance    | Pendiente |
@@ -113,20 +113,19 @@ Torneo → Categorías → Competidores → Llaves (Bracket)
 
 ### Orden recomendado de implementación
 
-Quedan **9 historias / 60 puntos**. El orden no es el de numeración sino el de dependencias y costo de
-retrabajo:
+Quedan **8 historias / 52 puntos** (H0009 ya está hecha). El orden no es el de numeración sino el de
+dependencias y costo de retrabajo:
 
 | # | Historia | Pts | Por qué en esa posición |
 |---|----------|-----|-------------------------|
-| 1 | H0009 Ciclo de vida del torneo | 8 | Define *cuándo* se puede modificar cada cosa |
-| 2 | H0010 Rehacer llaves | 5 | El bucle de corrección: sin él, un error de clasificación es permanente |
-| 3 | H0012 Categoría desierta | 3 | Se apoya en H0010 (crear la categoría implica regenerar) |
-| 4 | H0014 Catálogo de escuelas | 8 | Antes de acumular datos reales en texto libre |
-| 5 | H0015 Gestión de usuarios | 5 | Saca la dependencia del `DbSeeder` para crear Profesores |
-| 6 | H0016 Profesor por FK | 5 | Necesita H0014 y H0015 |
-| 7 | H0008 Reporte PDF | 8 | Después de H0014: agrupar por escuela deja de ser texto libre |
-| 8 | H0011 Doble participación | 13 | Cambio de modelo grande: hacerlo una sola vez, al final |
-| 9 | H0013 Tablas filtrables | 5 | Su columna/filtro de "Categoría" se rehace con H0011 |
+| 1 | H0010 Rehacer llaves | 5 | El bucle de corrección: sin él, un error de clasificación es permanente |
+| 2 | H0012 Categoría desierta | 3 | Se apoya en H0010 (crear la categoría implica regenerar) |
+| 3 | H0014 Catálogo de escuelas | 8 | Antes de acumular datos reales en texto libre |
+| 4 | H0015 Gestión de usuarios | 5 | Saca la dependencia del `DbSeeder` para crear Profesores |
+| 5 | H0016 Profesor por FK | 5 | Necesita H0014 y H0015 |
+| 6 | H0008 Reporte PDF | 8 | Después de H0014: agrupar por escuela deja de ser texto libre |
+| 7 | H0011 Doble participación | 13 | Cambio de modelo grande: hacerlo una sola vez, al final |
+| 8 | H0013 Tablas filtrables | 5 | Su columna/filtro de "Categoría" se rehace con H0011 |
 
 **Las tres razones de fondo:**
 
@@ -200,12 +199,16 @@ La idea rectora es que un torneo atraviesa **dos momentos con reglas opuestas**:
    - FKs: torneo→categorías/competidores/llaves en **CASCADE**; categoría→competidores en **SET NULL**;
      competidor→llaves en **RESTRICT**.
 
-4. **No regenerar llaves.** Una categoría con `LlavesGeneradas=true` no se regenera y hoy no hay "borrar
-   llaves". → Lo resuelve **H0010**, que obliga a reescribir esa regla de `skills/bracket-algorithm.md`.
+4. **No regenerar llaves.** Una categoría cuyo `Estado >= LlavesGeneradas` no se regenera y todavía no hay
+   "borrar llaves". → Lo resuelve **H0010**, que obliga a reescribir esa regla de `skills/bracket-algorithm.md`.
 
-5. **Las transiciones de estado del torneo NO existen todavía.** Todos quedan en `Borrador`; generar llaves
-   no cambia el estado. Por eso los guards de "Finalizado" son **latentes** (correctos pero inalcanzables).
-   → Lo resuelve **H0009**.
+5. **El torneo tiene ciclo de vida (H0009).** `Borrador → Activo → Finalizado`, con un endpoint de
+   transición. En Borrador se planifica (categorías, competidores, llaves); en Activo se compite
+   (registrar ganadores) y la planificación queda bloqueada; en Finalizado no se escribe nada.
+   Se vuelve de Activo a Borrador solo si no se registró ningún resultado.
+   La categoría tiene su propio `EstadoCategoria` (`SinLlaves → LlavesGeneradas → EnCurso → Finalizada`),
+   que se **deriva de sus matches** al registrar ganadores. `LlavesGeneradas` sigue existiendo como
+   propiedad derivada (`Estado >= LlavesGeneradas`), no como columna.
 
 6. **Un match no se reabre.** Registrar ganador exige match con sus **dos competidores** definidos y estado
    distinto de Finalizado/Bye: cambiar un ganador después de que avanzó la ronda siguiente dejaría al

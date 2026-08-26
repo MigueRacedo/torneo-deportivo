@@ -66,14 +66,17 @@ public class DeleteCompetidorCommandHandlerTests
         await comp.DidNotReceive().DeleteAsync(Arg.Any<Competidor>(), Arg.Any<CancellationToken>());
     }
 
-    [Fact]
-    public async Task Handle_TorneoFinalizado_LanzaConflictException()
+    // La planificación solo se toca en Borrador: en Activo se compite y en Finalizado no se escribe.
+    [Theory]
+    [InlineData(EstadoTorneo.Activo)]
+    [InlineData(EstadoTorneo.Finalizado)]
+    public async Task Handle_TorneoQueYaArranco_LanzaConflictException(EstadoTorneo estado)
     {
         var id = Guid.NewGuid();
         var torneoId = Guid.NewGuid();
         var comp = Substitute.For<ICompetidorRepository>();
         comp.GetByIdAsync(id, Arg.Any<CancellationToken>()).Returns(CompetidorExistente(id, torneoId));
-        var handler = new DeleteCompetidorCommandHandler(comp, TorneoRepoCon(torneoId, EstadoTorneo.Finalizado));
+        var handler = new DeleteCompetidorCommandHandler(comp, TorneoRepoCon(torneoId, estado));
 
         await Assert.ThrowsAsync<ConflictException>(
             () => handler.Handle(new DeleteCompetidorCommand(id, torneoId), CancellationToken.None));
