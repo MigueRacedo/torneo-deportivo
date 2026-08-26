@@ -8,7 +8,7 @@
 
 | ID | Título | Épica | Puntos | Rol |
 |----|--------|-------|--------|-----|
-| H0007 | Ver competidores (Profesor) | Consulta Profesor | 2 | Profesor |
+
 | H0008 | Generar reporte PDF | Reportes Director | 8 | Director |
 | H0009 | **Ciclo de vida del torneo** | Gestión del torneo | 8 | Coordinador |
 | H0010 | Rehacer llaves de una categoría | Inscripción y llaves | 5 | Coordinador |
@@ -16,9 +16,6 @@
 | H0012 | Categoría desierta | Inscripción y llaves | 3 | Coordinador |
 | H0013 | Tablas de competidores filtrables/ordenables/paginadas | Usabilidad | 5 | Coordinador + Profesor |
 
-- H0007: en backend **solo** existe `ICompetidorRepository.GetByEscuelaAsync` (repositorio + interfaz).
-  **No existe el endpoint** `GET /torneos/{torneoId}/competidores/escuela/{escuela}` (rol Profesor) — hay que
-  crearlo, junto con su query handler y la vista Profesor en el frontend.
 - H0008: usar **QuestPDF** (ya está la licencia Community configurada en `Infrastructure/DependencyInjection.cs`).
 
 ### Orden recomendado: H0009 → H0010 → H0012 → H0011 (H0013 en cualquier momento)
@@ -89,7 +86,7 @@ tiene cientos y hoy las tablas son listados planos sin ningún control.
 **Alcance — las dos tablas de competidores que existen hoy:**
 - `components/competidores/CompetidorList.tsx` (página de competidores del torneo).
 - `components/bracket/CompetidoresSinCategoria.tsx` (vista consolidada de llaves).
-- Cuando se implemente **H0007** (vista Profesor), esa tabla debe nacer usando el mismo componente.
+- **H0007 ya creó una tercera tabla** (`components/competidores/MisAlumnosList.tsx`): al hacer H0013 hay que migrar las tres al componente compartido.
 
 **Implementación:** extraer un componente de tabla reutilizable (ej. `components/ui/data-table.tsx`) con
 **`@tanstack/react-table`** — hay que agregar la dependencia, hoy no está instalada. Es la opción coherente
@@ -152,6 +149,9 @@ curl -s http://localhost:5000/api/v1/torneos -H "Authorization: Bearer $TOKEN"
 
 ## Deuda técnica anotada
 
+> La deuda de H0007 —el filtro por texto y la falta de UI para asignar escuela a un Profesor— quedó
+> promovida a historias: **H0014** y **H0015**. Ver §"Bloque de datos maestros".
+
 > Los tres follow-ups grandes que estaban acá (borrar/regenerar llaves, transición de estados y
 > multi-categoría) **se promovieron a historias**: H0010, H0009 y H0011 respectivamente (ver arriba).
 
@@ -164,3 +164,70 @@ Queda como deuda suelta:
 - Nombres de propiedad en errores de validación de rangos aparecen como `RangoEdadMin.Value` (cosmético).
 - `frontend`: 1 warning de lint preexistente en `CategoriaForm` (`watch()` de React Hook Form es
   incompatible con el React Compiler y saltea la memoización del componente).
+
+---
+
+## Bloque de datos maestros: H0014 → H0015 → H0016
+
+**Origen:** observación del usuario (2026-08-26) — *"no me parece bueno que se tenga que comparar texto
+con texto; escuela y responsable podrían ser un combo desplegable"*.
+
+**El problema.** `Competidor.Escuela`, `Competidor.Responsable` y `Usuario.Escuela` son **texto libre**.
+El filtro de H0007 compara `usuario.Escuela == competidor.Escuela` por igualdad exacta: un espacio de
+más, una mayúscula distinta o "Esc. Central" vs "Escuela Central" hacen que el Profesor **no vea a sus
+alumnos, sin ningún error visible**. Lo mismo va a romper los agrupamientos por escuela de H0008.
+
+**Por qué conviene no postergarlo.** El costo del backfill crece con cada torneo cargado: hoy son pocas
+variantes de texto por normalizar, dentro de unos meses es limpieza de datos a mano.
+
+### H0014 — Catálogo de escuelas · 8 pts · Básico
+
+- Entidad `Escuela` (`id`, `nombre` único, `activa`) + CRUD mínimo para el Coordinador.
+- `Competidor.EscuelaId` y `Usuario.EscuelaId` como **FK**, reemplazando los strings.
+- **Migración con backfill**, es la parte delicada: crear una fila `escuelas` por cada nombre distinto
+  ya existente (normalizando espacios y mayúsculas) y mapear los competidores/usuarios a esos ids antes
+  de borrar las columnas de texto. Debe ser reversible.
+- Combo desplegable en el alta y edición de competidor, en lugar del `<input>` de texto.
+- Al terminar, el filtro de H0007 pasa a ser una comparación de ids: se puede borrar la comparación de
+  strings de `GetMisCompetidoresQueryHandler`.
+- FK `escuela → competidores`: **RESTRICT** (no se borra una escuela con inscriptos).
+
+### H0015 — Gestión de usuarios (alta de Profesores) · 5 pts · Básico
+
+- CRUD de usuarios para el Coordinador: nombre, email, rol, escuela y contraseña inicial.
+- Cierra la deuda anotada en H0007: hoy la **única** forma de crear un Profesor o de asignarle escuela
+  es el `DbSeeder`, y el seeder solo corre en Development.
+- Es **prerrequisito de H0016**: para elegir un profesor de un combo tiene que haber profesores cargados.
+- Ojo con el hash de contraseña: reutilizar `IPasswordHasher`, nunca guardar texto plano (ya cubierto
+  por un test del seeder).
+
+### H0016 — Profesor responsable del competidor (FK) · 5 pts · Performance
+
+- `Competidor.ProfesorId` como FK a `Usuario` (rol Profesor), con combo en el alta **filtrado por la
+  escuela ya elegida**.
+- "Mis alumnos" (H0007) puede pasar a filtrar por **profesor** en vez de por escuela: más preciso cuando
+  una escuela tiene varios profesores.
+- ⚠️ **Punto a definir antes de implementar:** hoy `responsable` es texto libre y convive con `telefono`,
+  sin aclarar si es el profesor o el adulto a cargo. Si `responsable` se convierte en FK al profesor,
+  `telefono` queda huérfano (el teléfono del profesor va en su usuario, no repetido en cada competidor)
+  y se pierde el contacto del adulto responsable — relevante en un deporte de contacto con menores.
+  **Recomendación:** separar en dos campos, `profesorId` (FK) y `contactoEmergencia` + `telefono` (texto).
+- Depende de **H0015** (que existan profesores) y **H0014** (para filtrar el combo por escuela).
+
+### Dónde encaja este bloque en el orden general
+
+Es **ortogonal** a H0009–H0012 (ciclo de vida y llaves): toca columnas distintas de `competidores` y no
+comparte código con el clasificador ni con el bracket. Se puede intercalar.
+
+Dos consideraciones de prioridad:
+- **A favor de hacerlo pronto:** el backfill de H0014 se encarece con cada torneo que se cargue con texto
+  libre, y H0008 (reportes del Director) va a querer agrupar por escuela de forma confiable.
+- **A favor de esperar:** H0011 también migra `competidores` (relación N—N con categorías). Si se hacen
+  cerca en el tiempo, conviene no solaparlos para que cada migración sea revisable por separado.
+
+### Deuda que este bloque absorbe (de H0007)
+
+- El filtro de "mis alumnos" compara **escuela por texto exacto**: falla en silencio con diferencias de
+  espacios o mayúsculas. → **H0014**.
+- **No hay UI para asignar la escuela a un Profesor**: solo la pone el `DbSeeder`, que además corre
+  únicamente en Development. → **H0015**.

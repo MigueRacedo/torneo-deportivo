@@ -93,15 +93,18 @@ Torneo → Categorías → Competidores → Llaves (Bracket)
 | H0004 | Cargar competidores     | Inscripción y llaves | 3      | Básico         | ✅ |
 | H0005 | Generar llaves          | Inscripción y llaves | 13     | Atractivo ⭐   | ✅ |
 | H0006 | Ver categorías (Profesor)| Consulta Profesor    | 1      | Básico         | ✅ |
-| H0007 | Ver competidores (Profesor)| Consulta Profesor  | 2      | Performance    | Pendiente |
+| H0007 | Ver competidores (Profesor)| Consulta Profesor  | 2      | Performance    | ✅ |
 | H0008 | Generar reporte PDF     | Reportes Director    | 8      | Performance    | Pendiente |
 | H0009 | **Ciclo de vida del torneo** | Gestión del torneo | 8   | Básico         | Pendiente |
 | H0010 | Rehacer llaves de una categoría | Inscripción y llaves | 5 | Performance | Pendiente |
 | H0011 | Doble participación (Combate + Formas) | Inscripción y llaves | 13 | Atractivo | Pendiente |
 | H0012 | Categoría desierta      | Inscripción y llaves | 3      | Performance    | Pendiente |
 | H0013 | Tablas de competidores filtrables/ordenables/paginadas | Usabilidad | 5 | Performance | Pendiente |
+| H0014 | **Catálogo de escuelas** (FK, no texto libre) | Datos maestros | 8 | Básico | Pendiente |
+| H0015 | Gestión de usuarios (alta de Profesores) | Datos maestros | 5 | Básico | Pendiente |
+| H0016 | Profesor responsable del competidor (FK) | Datos maestros | 5 | Performance | Pendiente |
 
-> 📋 **Las especificaciones completas de las historias pendientes (H0007–H0013) y la deuda técnica
+> 📋 **Las especificaciones completas de las historias pendientes (H0008–H0016) y la deuda técnica
 > anotada están en `docs/backlog.md`.** Leerlo antes de implementar cualquiera de ellas.
 
 > Además hay un **bloque CRUD extra** (editar/eliminar competidor, eliminar categoría, eliminar torneo)
@@ -120,9 +123,11 @@ Torneo → Categorías → Competidores → Llaves (Bracket)
 - **H0011 al final** porque es el único que cambia el modelo de datos (competidor ↔ categoría pasa de
   1—N a N—N) y toca clasificador, brackets, reportes y toda la UI. Hacerlo antes obligaría a rehacerlo
   encima de cada historia anterior.
-- **H0013 es independiente** de las otras cuatro: no comparte código con ellas y se puede hacer en
-  cualquier momento. La única atadura es que su columna/filtro de "Categoría" se rehace con H0011
-  (una categoría pasa a ser varias).
+- **H0013 y el bloque de datos maestros (H0014–H0016) son independientes** de las otras cuatro: no
+  comparten código con ellas y se pueden intercalar en cualquier momento.
+  - H0013: su columna/filtro de "Categoría" se rehace con H0011 (una categoría pasa a ser varias).
+  - H0014–H0016: conviene **no solaparlos con H0011**, porque ambos migran `competidores` y cada
+    migración debería poder revisarse por separado.
 
 ## Ciclo de vida del torneo (H0009)
 
@@ -185,7 +190,7 @@ La idea rectora es que un torneo atraviesa **dos momentos con reglas opuestas**:
 ## Usuarios demo (seed)
 
 - **Coordinador:** `coordinador@torneo.test` · `Coordinador123!`
-- **Profesor:** `profesor@torneo.test` · `Profesor123!`
+- **Profesor:** `profesor@torneo.test` · `Profesor123!` — escuela asignada: **Escuela Central**
 
 Definidos en `Infrastructure/Persistence/DbSeeder.cs`, que verifica **por email, uno por uno**: una base
 existente recibe los roles nuevos al reiniciar, sin recrearla. ⚠️ El sembrado corre **solo en Development**

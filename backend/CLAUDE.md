@@ -166,13 +166,13 @@ public class GetTorneosQueryHandler : IRequestHandler<GetTorneosQuery, List<Torn
 | Método | Ruta                                            | Descripción                  | Rol requerido |
 |--------|-------------------------------------------------|------------------------------|---------------|
 | GET    | /api/v1/torneos/{torneoId}/competidores          | Listar todos                 | Coordinador   |
+| GET    | /api/v1/torneos/{torneoId}/competidores/mis-alumnos | Alumnos del Profesor (H0007) | Profesor      |
 | POST   | /api/v1/torneos/{torneoId}/competidores          | Cargar competidor            | Coordinador   |
 | PUT    | /api/v1/torneos/{torneoId}/competidores/{id}     | Editar competidor            | Coordinador   |
 | DELETE | /api/v1/torneos/{torneoId}/competidores/{id}     | Eliminar competidor          | Coordinador   |
 
-> ⚠️ **Todavía NO implementado:** `GET /api/v1/torneos/{torneoId}/competidores/escuela/{escuela}`
-> (listar por escuela, rol Profesor) — pertenece a **H0007**. El repositorio ya expone
-> `ICompetidorRepository.GetByEscuelaAsync`, pero **no existe el endpoint** que lo consuma.
+> ℹ️ H0007 se implementó como `…/competidores/mis-alumnos` (sin parámetro de escuela): ver
+> §"Identidad del usuario autenticado en un endpoint" al final de este documento.
 
 ### Guards de estado en edición y borrado
 Los guards viven en el **Command Handler** (no en el endpoint) y devuelven **409 `ConflictException`**:
@@ -379,3 +379,26 @@ curl -s http://localhost:5000/api/v1/torneos -H "Authorization: Bearer $TOKEN"
 - Convención de nombres: `{Metodo}_{Escenario}_{ResultadoEsperado}`
   - Ejemplo: `Handle_ValidCommand_ReturnsTorneoResponse`
 - El `BracketGeneratorService` requiere tests exhaustivos (ver `skills/bracket-algorithm.md`)
+
+## Identidad del usuario autenticado en un endpoint
+
+Cuando un endpoint necesita saber **quién** está pidiendo (no solo su rol), el id sale del token, nunca
+de la ruta ni del body. Patrón usado en `GetMisCompetidoresEndpoint` (H0007):
+
+```csharp
+// El token se emite con "sub", pero ASP.NET Core lo remapea a NameIdentifier porque MapInboundClaims
+// está activo. Desactivarlo rompería Roles(...), que depende del mismo remapeo para ClaimTypes.Role.
+var sub = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+          ?? User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+
+if (!Guid.TryParse(sub, out var usuarioId)) { await Send.UnauthorizedAsync(ct); return; }
+```
+
+El endpoint pasa el `usuarioId` a la Query; el **handler** resuelve los datos del usuario contra el
+repositorio. Así la capa Application no toca `HttpContext` y el dato siempre está fresco (si viajara en
+el token, un cambio de escuela recién impactaría al re-loguearse).
+
+⚠️ **Nunca aceptar del cliente un dato que identifique al dueño de los registros** (escuela, id de usuario).
+La ruta `…/competidores/escuela/{escuela}` que estaba documentada como pendiente se descartó por eso:
+cualquier Profesor podría haber pedido la escuela de otro y leído responsable y teléfono de menores ajenos.
+La ruta implementada es `…/competidores/mis-alumnos`, sin parámetro.
