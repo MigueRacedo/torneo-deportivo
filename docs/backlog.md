@@ -232,5 +232,9 @@ En el orden acordado va en las **posiciones 4 a 6**, después de la cadena de ll
 
 - El filtro de "mis alumnos" compara **escuela por texto exacto**: falla en silencio con diferencias de
   espacios o mayúsculas. → **H0014**.
+- **Ningún endpoint tiene test de integración** en todo el proyecto, pese a la regla 5 de `CLAUDE.md`.
+  Se siente en H0007: el bug del claim `sub` remapeado (que habría devuelto 401 siempre) no lo habría
+  detectado ningún test — los del handler reciben el `usuarioId` ya resuelto. Falta montar la
+  infraestructura (`App.Fixture` de FastEndpoints) una vez y usarla de ahí en adelante.
 - **No hay UI para asignar la escuela a un Profesor**: solo la pone el `DbSeeder`, que además corre
   únicamente en Development. → **H0015**.

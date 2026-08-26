@@ -23,4 +23,11 @@ public class UsuarioRepository(TorneoDbContext db) : IUsuarioRepository
         db.Usuarios.Add(usuario);
         await db.SaveChangesAsync(ct);
     }
+
+    /// <summary>Actualiza un usuario existente y guarda los cambios.</summary>
+    public async Task UpdateAsync(Usuario usuario, CancellationToken ct)
+    {
+        db.Usuarios.Update(usuario);
+        await db.SaveChangesAsync(ct);
+    }
 }

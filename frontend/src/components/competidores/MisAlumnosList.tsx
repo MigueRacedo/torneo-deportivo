@@ -1,7 +1,7 @@
 import { formatearGraduacion } from '@/components/categorias/graduacion';
-import type { Competidor } from '@/types';
+import type { MiAlumno } from '@/types';
 
-const SEXO_LABEL: Record<Competidor['sexo'], string> = { M: 'Masculino', F: 'Femenino' };
+const SEXO_LABEL: Record<MiAlumno['sexo'], string> = { M: 'Masculino', F: 'Femenino' };
 
 function MisAlumnosSkeleton() {
   return (
@@ -27,7 +27,7 @@ export function MisAlumnosList({
   competidores,
   isLoading,
 }: {
-  competidores: Competidor[];
+  competidores: MiAlumno[];
   isLoading: boolean;
 }) {
   if (isLoading) return <MisAlumnosSkeleton />;

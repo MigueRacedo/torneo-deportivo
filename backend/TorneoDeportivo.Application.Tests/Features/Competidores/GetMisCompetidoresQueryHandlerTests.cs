@@ -65,6 +65,9 @@ public class GetMisCompetidoresQueryHandlerTests
         Assert.Equal(EscuelaPropia, result.Escuela);
         Assert.Equal(2, result.Competidores.Count);
         Assert.Contains(result.Competidores, c => c.NombreCompleto == "Alumno Gómez");
+        // El DTO de esta vista no expone datos de contacto: no tiene Responsable ni Telefono.
+        Assert.DoesNotContain("Responsable", typeof(MiAlumnoResponse).GetProperties().Select(p => p.Name));
+        Assert.DoesNotContain("Telefono", typeof(MiAlumnoResponse).GetProperties().Select(p => p.Name));
     }
 
     [Fact]

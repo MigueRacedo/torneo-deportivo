@@ -15,4 +15,7 @@ public interface IUsuarioRepository
 
     /// <summary>Persiste un nuevo usuario.</summary>
     Task AddAsync(Usuario usuario, CancellationToken ct);
+
+    /// <summary>Actualiza un usuario existente.</summary>
+    Task UpdateAsync(Usuario usuario, CancellationToken ct);
 }

@@ -22,12 +22,22 @@ public class CompetidorRepository(TorneoDbContext db) : ICompetidorRepository
             .ToListAsync(ct);
 
     /// <summary>Obtiene los competidores de un torneo de una escuela específica (vista del Profesor).</summary>
-    public Task<List<Competidor>> GetByEscuelaAsync(Guid torneoId, string escuela, CancellationToken ct) =>
-        db.Competidores
+    /// <remarks>
+    /// La comparación ignora mayúsculas y espacios sobrantes: mientras la escuela sea texto libre, un
+    /// "Escuela Central " cargado con un espacio de más dejaría al Profesor sin ver a sus alumnos y sin
+    /// ningún error visible. Es una mitigación temporal — <b>H0014</b> convierte la escuela en una FK y
+    /// entonces esto vuelve a ser una comparación de ids.
+    /// </remarks>
+    public Task<List<Competidor>> GetByEscuelaAsync(Guid torneoId, string escuela, CancellationToken ct)
+    {
+        var buscada = escuela.Trim().ToLower();
+
+        return db.Competidores
             .Include(c => c.Categoria)
-            .Where(c => c.TorneoId == torneoId && c.Escuela == escuela)
+            .Where(c => c.TorneoId == torneoId && c.Escuela.Trim().ToLower() == buscada)
             .OrderBy(c => c.Apellido).ThenBy(c => c.Nombre)
             .ToListAsync(ct);
+    }
 
     /// <summary>
     /// Cuenta los competidores del torneo agrupados por categoría. La agregación se resuelve en SQL

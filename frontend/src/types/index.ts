@@ -129,13 +129,27 @@ export interface CreateCompetidorInput {
 export type UpdateCompetidorInput = CreateCompetidorInput;
 
 /**
+ * Alumno tal como lo ve su Profesor (H0007). Es un tipo propio y más chico que `Competidor`:
+ * el endpoint `mis-alumnos` no manda `responsable` ni `telefono`, que esta vista no muestra.
+ */
+export interface MiAlumno {
+  id: string;
+  nombreCompleto: string;
+  sexo: Sexo;
+  edad: number;
+  graduacion: string;
+  peso: number;
+  categoriaNombre?: string | null;
+}
+
+/**
  * Alumnos del Profesor autenticado en un torneo (H0007).
  * `escuela` en null significa que el usuario todavía no tiene escuela asignada — distinto de
  * "la escuela no tiene inscriptos", que es escuela con nombre y lista vacía.
  */
 export interface MisCompetidores {
   escuela: string | null;
-  competidores: Competidor[];
+  competidores: MiAlumno[];
 }
 
 // ── Llaves / Bracket (H0005) ──────────────────────────────────────────────

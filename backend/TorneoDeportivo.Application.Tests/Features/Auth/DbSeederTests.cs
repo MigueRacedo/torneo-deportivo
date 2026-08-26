@@ -68,6 +68,39 @@ public class DbSeederTests
     }
 
     [Fact]
+    public async Task SeedAsync_UsuarioDemoExistenteSinEscuela_LeCompletaElCampo()
+    {
+        // El caso que obligaba a un UPDATE a mano: el Profesor ya existía de H0006 y H0007 le agregó
+        // el campo Escuela. El seeder debe completarlo al reiniciar, sin recrear la base.
+        var repo = Substitute.For<IUsuarioRepository>();
+        repo.GetByEmailAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns((Usuario?)null);
+        var profesorSinEscuela = new Usuario { Id = Guid.NewGuid(), Email = EmailProfesor, Escuela = null };
+        repo.GetByEmailAsync(EmailProfesor, Arg.Any<CancellationToken>()).Returns(profesorSinEscuela);
+
+        await DbSeeder.SeedAsync(repo, Substitute.For<IPasswordHasher>());
+
+        Assert.False(string.IsNullOrWhiteSpace(profesorSinEscuela.Escuela));
+        await repo.Received(1).UpdateAsync(profesorSinEscuela, Arg.Any<CancellationToken>());
+        await repo.DidNotReceive().AddAsync(
+            Arg.Is<Usuario>(u => u.Email == EmailProfesor), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task SeedAsync_UsuarioDemoConEscuelaDistinta_NoLaPisa()
+    {
+        // Si alguien ya le asignó otra escuela, el seeder no debe sobrescribirla en cada arranque.
+        var repo = Substitute.For<IUsuarioRepository>();
+        repo.GetByEmailAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns((Usuario?)null);
+        var profesor = new Usuario { Id = Guid.NewGuid(), Email = EmailProfesor, Escuela = "Otra Escuela" };
+        repo.GetByEmailAsync(EmailProfesor, Arg.Any<CancellationToken>()).Returns(profesor);
+
+        await DbSeeder.SeedAsync(repo, Substitute.For<IPasswordHasher>());
+
+        Assert.Equal("Otra Escuela", profesor.Escuela);
+        await repo.DidNotReceive().UpdateAsync(Arg.Any<Usuario>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
     public async Task SeedAsync_PersisteElHashYNoLaContrasenaEnClaro()
     {
         var repo = Substitute.For<IUsuarioRepository>();

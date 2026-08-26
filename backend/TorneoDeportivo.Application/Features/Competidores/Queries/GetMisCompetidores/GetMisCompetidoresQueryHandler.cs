@@ -33,6 +33,17 @@ public class GetMisCompetidoresQueryHandler(
 
         var competidores = await competidorRepo.GetByEscuelaAsync(torneo.Id, usuario.Escuela, ct);
 
-        return new MisCompetidoresResponse(usuario.Escuela, competidores.Select(c => c.ToResponse()).ToList());
+        return new MisCompetidoresResponse(
+            usuario.Escuela,
+            competidores
+                .Select(c => new MiAlumnoResponse(
+                    c.Id,
+                    $"{c.Nombre} {c.Apellido}",
+                    c.Sexo.ToString(),
+                    c.Edad,
+                    c.Graduacion,
+                    c.Peso,
+                    c.Categoria?.Nombre))
+                .ToList());
     }
 }
