@@ -77,6 +77,9 @@ export interface Categoria {
   rangoGraduacionMin: string;
   rangoGraduacionMax: string;
   llavesGeneradas: boolean;
+  // Cantidad de competidores asignados. Solo viene en el listado de categorías (H0006);
+  // undefined significa "no calculado", distinto de 0 ("sin competidores").
+  totalCompetidores?: number;
 }
 
 export interface CreateCategoriaInput {

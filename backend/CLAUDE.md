@@ -208,7 +208,7 @@ recursos de otros torneos). Ver `docs/CRUD-extra-edicion-y-borrado.pdf`.
 
 ### Endpoints planificados (historias H0009–H0012)
 Ninguno existe todavía; se listan para que la nomenclatura salga consistente cuando se implementen.
-El diseño completo está en `CLAUDE.md` (raíz) y `HANDOFF.md`.
+El diseño completo está en `CLAUDE.md` (raíz) y `docs/backlog.md`.
 
 | Historia | Método | Ruta (propuesta)                                      | Descripción |
 |----------|--------|-------------------------------------------------------|-------------|
@@ -338,6 +338,40 @@ FastEndpoints, ante un fallo de `Validator<T>` **o de binding/deserialización**
 - ⚠️ Un **GET/DELETE con header `Content-Type: application/json` y sin body** dispara este
   400 (`serializerErrors`: "The input does not contain any JSON tokens"). El cliente solo
   debe mandar `Content-Type` cuando hay body. Ver regla 9 de `frontend/CLAUDE.md`.
+
+## Reglas de validación compartidas (no duplicar entre Command y Request)
+
+El validator del `Request` (capa API) y el del `Command` (capa Application) necesitan las mismas reglas.
+Para no duplicarlas se usa **interfaz + extension method**:
+
+- `ICategoriaData` + `CategoriaValidationRules.AddCategoriaRules()`
+- `ICompetidorData` + `CompetidorValidationRules.AddCompetidorRules()`
+
+Tanto el Request como el Command implementan la interfaz, y cada validator invoca
+`this.Add{Entidad}Rules()`. Una sola definición, dos puntos de aplicación.
+
+## Arquitectura de H0005 — backend (por si se retoma el bracket)
+
+- **Algoritmo:** `Application/Features/Llaves/BracketGeneratorService.cs` — función pura, con los
+  10 casos obligatorios de `skills/bracket-algorithm.md` cubiertos por tests.
+- **Clasificador:** `Application/Features/Llaves/ClasificadorCompetidores.cs` (`Encaja(competidor, categoria)`).
+  Es **fail-closed**: si alguna graduación no parsea, el competidor NO encaja (queda visible en
+  "sin categoría" en lugar de colarse en una categoría cuyo rango no se pudo verificar).
+- **Casos de uso:** `Features/Llaves/Commands/{GenerarLlaves,RegistrarGanador}` y `Queries/GetBracket`.
+- **Endpoints:** `API/Endpoints/Llaves/` (generar POST, ver GET, ganador PUT).
+- **SignalR:** `IBracketNotifier` (Application) ← `SignalRBracketNotifier` (API, usa `BracketHub`).
+  Evento `MatchActualizado` al grupo `torneo-{id}`, registrado en `Program.cs`.
+- Al registrar un ganador, el match actual y el de la ronda siguiente se persisten con un único
+  `UpdateRangeAsync` (un solo `SaveChanges`): por separado, un fallo dejaría el bracket a medio avanzar.
+
+## Probar la API por curl
+
+```bash
+TOKEN=$(curl -s -X POST http://localhost:5000/api/v1/auth/login -H "Content-Type: application/json" \
+  -d '{"email":"coordinador@torneo.test","password":"Coordinador123!"}' | sed -E 's/.*"token":"([^"]+)".*/\1/')
+curl -s http://localhost:5000/api/v1/torneos -H "Authorization: Bearer $TOKEN"
+# ⚠️ En GET NO mandar Content-Type (rompe FastEndpoints). El frontend ya lo maneja.
+```
 
 ## Tests
 - **Unit tests**: xUnit + NSubstitute para handlers de CQRS y BracketGeneratorService

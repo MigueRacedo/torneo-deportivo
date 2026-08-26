@@ -16,6 +16,12 @@ public interface ICompetidorRepository
     /// <summary>Obtiene los competidores de un torneo pertenecientes a una escuela específica (vista del Profesor).</summary>
     Task<List<Competidor>> GetByEscuelaAsync(Guid torneoId, string escuela, CancellationToken ct);
 
+    /// <summary>
+    /// Cuenta, por categoría, cuántos competidores del torneo quedaron asignados a cada una.
+    /// Devuelve un diccionario categoríaId → cantidad; las categorías sin competidores no aparecen.
+    /// </summary>
+    Task<Dictionary<Guid, int>> GetConteoPorCategoriaAsync(Guid torneoId, CancellationToken ct);
+
     /// <summary>Persiste un nuevo competidor.</summary>
     Task AddAsync(Competidor competidor, CancellationToken ct);
 

@@ -8,12 +8,18 @@ export const competidorKeys = {
   byTorneo: (torneoId: string) => ['competidores', torneoId] as const,
 };
 
-/** Lista los competidores de un torneo (server state en TanStack Query). */
-export function useCompetidores(torneoId: string) {
+/**
+ * Lista los competidores de un torneo (server state en TanStack Query).
+ *
+ * El endpoint es **solo Coordinador**: un Profesor ve únicamente los de su escuela (H0007). Por eso
+ * las pantallas que comparte con otros roles deben deshabilitar la consulta cuando el usuario no es
+ * Coordinador; si no, responde 403 y rompe toda la vista.
+ */
+export function useCompetidores(torneoId: string, opciones?: { enabled?: boolean }) {
   return useQuery({
     queryKey: competidorKeys.byTorneo(torneoId),
     queryFn: () => api.competidores.listar(torneoId),
-    enabled: Boolean(torneoId),
+    enabled: Boolean(torneoId) && (opciones?.enabled ?? true),
   });
 }
 

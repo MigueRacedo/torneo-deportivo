@@ -8,6 +8,7 @@ import { useCategorias } from '@/hooks/useCategorias';
 import { useCompetidores } from '@/hooks/useCompetidores';
 import { useTorneo } from '@/hooks/useTorneos';
 import { ApiError } from '@/lib/api';
+import { useAuthStore } from '@/store/authStore';
 
 /** Explica por qué una categoría no llegó a tener bracket, según cuántos competidores le tocaron. */
 function motivoSinLlaves(total: number): string {
@@ -17,30 +18,32 @@ function motivoSinLlaves(total: number): string {
 
 /**
  * Vista consolidada de las llaves del torneo (H0005): navegación entre las categorías con bracket
- * (se ve una por vez), las categorías que quedaron sin llaves con su motivo, y los competidores que
- * ninguna categoría absorbió. Es la pantalla a la que se llega después de generar.
+ * (se ve una por vez), las categorías que quedaron sin llaves con su motivo, y —solo para el
+ * Coordinador— los competidores que ninguna categoría absorbió.
+ *
+ * La página es accesible para los tres roles, así que solo puede depender de endpoints abiertos a
+ * todos: categorías, torneo y bracket. El listado completo de competidores es exclusivo del
+ * Coordinador y por eso se consulta condicionalmente (ver más abajo).
  */
 export default function LlavesTorneoPage() {
   const { torneoId = '' } = useParams<{ torneoId: string }>();
   const [searchParams] = useSearchParams();
+  const esCoordinador = useAuthStore((state) => state.usuario?.rol === 'Coordinador');
 
   const { data: torneo } = useTorneo(torneoId);
   const { data: categorias, isLoading: cargandoCategorias, error: errorCategorias } = useCategorias(torneoId);
-  const { data: competidores, isLoading: cargandoCompetidores, error: errorCompetidores } =
-    useCompetidores(torneoId);
+
+  // GET /torneos/{id}/competidores es Roles("Coordinador"): pedirlo como Profesor devuelve 403 y
+  // tumba la vista entera. Solo se consulta para el Coordinador, que es el único que ve la sección
+  // de competidores sin categoría.
+  const {
+    data: competidores,
+    isLoading: cargandoCompetidores,
+    error: errorCompetidores,
+  } = useCompetidores(torneoId, { enabled: esCoordinador });
 
   // Una sola conexión SignalR para toda la página, no una por categoría.
   useBracketLiveUpdates(torneoId);
-
-  const competidoresPorCategoria = useMemo(() => {
-    const conteo = new Map<string, number>();
-    for (const competidor of competidores ?? []) {
-      if (competidor.categoriaId) {
-        conteo.set(competidor.categoriaId, (conteo.get(competidor.categoriaId) ?? 0) + 1);
-      }
-    }
-    return conteo;
-  }, [competidores]);
 
   const conLlaves = useMemo(() => (categorias ?? []).filter((c) => c.llavesGeneradas), [categorias]);
   const sinLlaves = useMemo(() => (categorias ?? []).filter((c) => !c.llavesGeneradas), [categorias]);
@@ -53,7 +56,7 @@ export default function LlavesTorneoPage() {
   const categoriaParam = searchParams.get('categoria');
   const seleccionada = conLlaves.find((c) => c.id === categoriaParam) ?? conLlaves[0];
 
-  const cargando = cargandoCategorias || cargandoCompetidores;
+  const cargando = cargandoCategorias || (esCoordinador && cargandoCompetidores);
   const error = errorCategorias ?? errorCompetidores;
 
   return (
@@ -88,8 +91,8 @@ export default function LlavesTorneoPage() {
         <>
           {conLlaves.length === 0 ? (
             <p className="rounded-lg border bg-card p-4 text-sm leading-relaxed text-muted-foreground">
-              Ninguna categoría de este torneo tiene llaves generadas todavía. Volvé a categorías y usá
-              “Generar llaves”.
+              Ninguna categoría de este torneo tiene llaves generadas todavía.
+              {esCoordinador && ' Volvé a categorías y usá “Generar llaves”.'}
             </p>
           ) : (
             <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
@@ -101,7 +104,6 @@ export default function LlavesTorneoPage() {
                   torneoId={torneoId}
                   categorias={conLlaves}
                   seleccionadaId={seleccionada?.id}
-                  competidoresPorCategoria={competidoresPorCategoria}
                 />
               </aside>
 
@@ -141,7 +143,7 @@ export default function LlavesTorneoPage() {
                       {categoria.nombre}
                     </span>
                     <span className="text-sm leading-relaxed text-muted-foreground text-left">
-                      {motivoSinLlaves(competidoresPorCategoria.get(categoria.id) ?? 0)}
+                      {motivoSinLlaves(categoria.totalCompetidores ?? 0)}
                     </span>
                   </li>
                 ))}
@@ -149,12 +151,16 @@ export default function LlavesTorneoPage() {
             </section>
           )}
 
-          <section className="flex flex-col gap-4 border-t pt-8">
-            <h2 className="text-xl leading-relaxed font-semibold text-left">
-              Competidores sin categoría ({sinCategoria.length})
-            </h2>
-            <CompetidoresSinCategoria torneoId={torneoId} competidores={sinCategoria} />
-          </section>
+          {/* Solo el Coordinador: es información de gestión (a quién hay que corregir) y además
+              expone los datos personales de todos los inscriptos del torneo. */}
+          {esCoordinador && (
+            <section className="flex flex-col gap-4 border-t pt-8">
+              <h2 className="text-xl leading-relaxed font-semibold text-left">
+                Competidores sin categoría ({sinCategoria.length})
+              </h2>
+              <CompetidoresSinCategoria torneoId={torneoId} competidores={sinCategoria} />
+            </section>
+          )}
         </>
       )}
     </section>

@@ -37,6 +37,15 @@ export default function CategoriasPage() {
         )}
       </header>
 
+      {/* La página es de gestión para el Coordinador y de consulta para Profesor y Director (H0006):
+          sin esta introducción, un rol de solo lectura ve una pantalla sin acciones y sin explicación. */}
+      {!esCoordinador && (
+        <p className="text-sm leading-relaxed text-muted-foreground text-left">
+          Categorías definidas para este torneo, con sus rangos y cuántos competidores quedaron inscriptos
+          en cada una. Las que ya tienen llaves generadas muestran el enlace a su cuadro.
+        </p>
+      )}
+
       {esCoordinador && (
         <section className="flex flex-col gap-2 rounded-lg border bg-card p-4">
           <h2 className="text-base leading-relaxed font-semibold text-left">Armar las llaves</h2>

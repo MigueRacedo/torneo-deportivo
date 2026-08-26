@@ -7,24 +7,26 @@ import type { Categoria } from '@/types';
  * Son `<Link>` y no botones a propósito: cada categoría es una URL propia
  * (`?categoria=<id>`), así el enlace se puede compartir, abrir en otra pestaña y el
  * botón "atrás" del navegador vuelve a la categoría anterior.
+ *
+ * El total de competidores sale de `categoria.totalCompetidores`, que ya calcula el backend en el
+ * listado (H0006). Antes se recibía un mapa armado recorriendo todos los competidores del torneo,
+ * lo cual obligaba a consultar un endpoint exclusivo del Coordinador.
  */
 export function CategoriaLlaveNav({
   torneoId,
   categorias,
   seleccionadaId,
-  competidoresPorCategoria,
 }: {
   torneoId: string;
   categorias: Categoria[];
   seleccionadaId?: string;
-  competidoresPorCategoria: Map<string, number>;
 }) {
   return (
     <nav aria-label="Categorías con llaves generadas">
       <ul className="flex flex-col gap-2">
         {categorias.map((categoria) => {
           const activa = categoria.id === seleccionadaId;
-          const total = competidoresPorCategoria.get(categoria.id) ?? 0;
+          const total = categoria.totalCompetidores ?? 0;
 
           return (
             <li key={categoria.id}>

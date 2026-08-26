@@ -321,6 +321,21 @@ export function crearConexionBracket(torneoId: string) {
     con `bracketKeys.byTorneo` (prefijo) y no con `detail`: el evento `MatchActualizado` es de
     alcance torneo. Invalidar solo `detail` deja obsoletos los brackets que no se están mirando.
 
+14. **Una pantalla compartida entre roles solo puede depender de endpoints abiertos a todos.**
+    Antes de usar un hook en una ruta sin RoleGuard de Coordinador, verificar el `Roles(...)` del
+    endpoint que consume. Caso real: la vista consolidada de llaves llamaba a `useCompetidores`, cuyo
+    endpoint es solo Coordinador — un Profesor recibía **403** y, como FastEndpoints responde 403 con
+    cuerpo vacío, `extraerMensajeError` devolvía null y la pantalla entera mostraba el mensaje genérico.
+    Si el dato es imprescindible, obtenerlo de un endpoint abierto (el conteo por categoría viaja en
+    `totalCompetidores`); si es información de gestión, deshabilitar la consulta con `enabled` y ocultar
+    la sección.
+
+15. **Todo borrado pasa por `ConfirmDialog`** (`components/ui/confirm-dialog.tsx`, Base UI AlertDialog).
+    El backend hace **borrado físico**, así que la confirmación es la única red de contención.
+    Los botones "Eliminar" van **atenuados (`text-muted-foreground`) en reposo → rojo en hover/focus**:
+    por la regla 60-30-10 el rojo se reserva a los CTAs, y pintar de rojo permanente cada botón de
+    borrar en una lista de 15 filas destacaría justo la acción más peligrosa.
+
 ## UX/UI y Accesibilidad (WCAG 2.2 AA) — obligatorio
 > Guía completa con ejemplos en Tailwind: `skills/ux-ui-guidelines.md`. Leerla antes
 > de crear o tocar cualquier componente visual.

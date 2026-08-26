@@ -13,10 +13,6 @@ public class UsuarioRepository(TorneoDbContext db) : IUsuarioRepository
     public Task<Usuario?> GetByEmailAsync(string email, CancellationToken ct) =>
         db.Usuarios.FirstOrDefaultAsync(u => u.Email == email, ct);
 
-    /// <summary>Indica si existe al menos un usuario registrado.</summary>
-    public Task<bool> ExisteAlgunoAsync(CancellationToken ct) =>
-        db.Usuarios.AnyAsync(ct);
-
     /// <summary>Agrega un nuevo usuario y guarda los cambios.</summary>
     public async Task AddAsync(Usuario usuario, CancellationToken ct)
     {

@@ -29,6 +29,17 @@ public class CompetidorRepository(TorneoDbContext db) : ICompetidorRepository
             .OrderBy(c => c.Apellido).ThenBy(c => c.Nombre)
             .ToListAsync(ct);
 
+    /// <summary>
+    /// Cuenta los competidores del torneo agrupados por categoría. La agregación se resuelve en SQL
+    /// (GROUP BY) en lugar de traer los competidores y contarlos en memoria.
+    /// </summary>
+    public async Task<Dictionary<Guid, int>> GetConteoPorCategoriaAsync(Guid torneoId, CancellationToken ct) =>
+        await db.Competidores
+            .Where(c => c.TorneoId == torneoId && c.CategoriaId != null)
+            .GroupBy(c => c.CategoriaId!.Value)
+            .Select(g => new { CategoriaId = g.Key, Total = g.Count() })
+            .ToDictionaryAsync(x => x.CategoriaId, x => x.Total, ct);
+
     /// <summary>Agrega un nuevo competidor y guarda los cambios.</summary>
     public async Task AddAsync(Competidor competidor, CancellationToken ct)
     {

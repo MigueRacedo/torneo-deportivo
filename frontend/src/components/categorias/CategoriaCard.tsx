@@ -41,6 +41,7 @@ export function CategoriaCard({ categoria }: { categoria: Categoria }) {
   const eliminar = useEliminarCategoria(categoria.torneoId);
   const edad = textoRango(categoria.rangoEdadMin, categoria.rangoEdadMax, 'años') ?? 'Todas las edades';
   const peso = textoRango(categoria.rangoPesoMin, categoria.rangoPesoMax, 'kg');
+  const total = categoria.totalCompetidores;
 
   const onEliminar = () =>
     eliminar.mutate(categoria.id, {
@@ -78,7 +79,20 @@ export function CategoriaCard({ categoria }: { categoria: Categoria }) {
           <dt className="font-medium text-foreground">Graduación:</dt>
           <dd>{textoGraduacion(categoria.rangoGraduacionMin, categoria.rangoGraduacionMax)}</dd>
         </div>
+        {/* Solo el listado calcula el total; en otras respuestas llega undefined y la fila se omite. */}
+        {total != null && (
+          <div className="flex gap-2">
+            <dt className="font-medium text-foreground">Competidores:</dt>
+            <dd>{total === 0 ? 'Ninguno todavía' : `${total} inscripto${total === 1 ? '' : 's'}`}</dd>
+          </div>
+        )}
       </dl>
+
+      {/* El estado de las llaves se dice con texto, no solo con la presencia del enlace:
+          sin esto, un Profesor no distingue "no hay llaves" de "no tengo permiso para verlas". */}
+      <p className="text-sm leading-relaxed text-muted-foreground text-left">
+        {categoria.llavesGeneradas ? '✓ Llaves generadas' : 'Llaves sin generar'}
+      </p>
 
       <div className="flex flex-wrap items-center gap-4 text-sm leading-relaxed">
         {categoria.llavesGeneradas && (

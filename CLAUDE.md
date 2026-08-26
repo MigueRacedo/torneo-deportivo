@@ -92,7 +92,7 @@ Torneo → Categorías → Competidores → Llaves (Bracket)
 | H0003 | Editar torneo           | Config. inicial      | 3      | Performance    | ✅ |
 | H0004 | Cargar competidores     | Inscripción y llaves | 3      | Básico         | ✅ |
 | H0005 | Generar llaves          | Inscripción y llaves | 13     | Atractivo ⭐   | ✅ |
-| H0006 | Ver categorías (Profesor)| Consulta Profesor    | 1      | Básico         | Pendiente |
+| H0006 | Ver categorías (Profesor)| Consulta Profesor    | 1      | Básico         | ✅ |
 | H0007 | Ver competidores (Profesor)| Consulta Profesor  | 2      | Performance    | Pendiente |
 | H0008 | Generar reporte PDF     | Reportes Director    | 8      | Performance    | Pendiente |
 | H0009 | **Ciclo de vida del torneo** | Gestión del torneo | 8   | Básico         | Pendiente |
@@ -100,6 +100,9 @@ Torneo → Categorías → Competidores → Llaves (Bracket)
 | H0011 | Doble participación (Combate + Formas) | Inscripción y llaves | 13 | Atractivo | Pendiente |
 | H0012 | Categoría desierta      | Inscripción y llaves | 3      | Performance    | Pendiente |
 | H0013 | Tablas de competidores filtrables/ordenables/paginadas | Usabilidad | 5 | Performance | Pendiente |
+
+> 📋 **Las especificaciones completas de las historias pendientes (H0007–H0013) y la deuda técnica
+> anotada están en `docs/backlog.md`.** Leerlo antes de implementar cualquiera de ellas.
 
 > Además hay un **bloque CRUD extra** (editar/eliminar competidor, eliminar categoría, eliminar torneo)
 > hecho entre H0004 y H0005, que no es una historia del backlog.
@@ -148,6 +151,47 @@ La idea rectora es que un torneo atraviesa **dos momentos con reglas opuestas**:
 - Activo → Borrador: solo si todavía no se registró ningún ganador (si no, habría que descartar resultados).
 - El torneo pasa a Finalizado **solo** desde Activo; nunca se salta un estado.
 
+## Decisiones de diseño vigentes (contexto que no está en el código)
+
+1. **Competidor desacoplado de categoría.** Se carga **sin categoría** (`categoria_id` nullable) y con
+   **`sexo`**. La relación se resuelve al **generar llaves (H0005)**, clasificándolo por atributos contra
+   los rangos. Evita elegir categoría a mano sin validar el encaje.
+
+2. **Clasificación first-fit.** Cada competidor sin categoría va a la **primera categoría que encaja**, y
+   solo se consideran categorías **sin llaves generadas** (si no, quedaría con categoría pero fuera del
+   bracket, e invisible). → Queda derogada por **H0011**, que pasa la relación a N—N.
+
+3. **Borrado físico + guards por estado** (no soft-delete). Los guards viven en el Command Handler y
+   devuelven **409**:
+   - Eliminar torneo: solo en **Borrador**.
+   - Editar/eliminar competidor y categoría: torneo **no Finalizado**.
+   - Categoría con **llaves generadas**: bloqueada para editar/eliminar (guard backend + oculta en UI).
+   - Todas verifican además que el recurso pertenezca al torneo de la ruta → **404**, no 403 (no filtrar
+     la existencia de recursos de otros torneos).
+   - FKs: torneo→categorías/competidores/llaves en **CASCADE**; categoría→competidores en **SET NULL**;
+     competidor→llaves en **RESTRICT**.
+
+4. **No regenerar llaves.** Una categoría con `LlavesGeneradas=true` no se regenera y hoy no hay "borrar
+   llaves". → Lo resuelve **H0010**, que obliga a reescribir esa regla de `skills/bracket-algorithm.md`.
+
+5. **Las transiciones de estado del torneo NO existen todavía.** Todos quedan en `Borrador`; generar llaves
+   no cambia el estado. Por eso los guards de "Finalizado" son **latentes** (correctos pero inalcanzables).
+   → Lo resuelve **H0009**.
+
+6. **Un match no se reabre.** Registrar ganador exige match con sus **dos competidores** definidos y estado
+   distinto de Finalizado/Bye: cambiar un ganador después de que avanzó la ronda siguiente dejaría al
+   perdedor propagado aguas abajo.
+
+## Usuarios demo (seed)
+
+- **Coordinador:** `coordinador@torneo.test` · `Coordinador123!`
+- **Profesor:** `profesor@torneo.test` · `Profesor123!`
+
+Definidos en `Infrastructure/Persistence/DbSeeder.cs`, que verifica **por email, uno por uno**: una base
+existente recibe los roles nuevos al reiniciar, sin recrearla. ⚠️ El sembrado corre **solo en Development**
+(`app.Environment.IsDevelopment()` en `Program.cs`) porque estas contraseñas están publicadas en el repo;
+las migraciones sí se aplican en todos los entornos.
+
 ## Convenciones de Código
 
 ### Backend (.NET 10)
@@ -168,6 +212,11 @@ La idea rectora es que un torneo atraviesa **dos momentos con reglas opuestas**:
 - Forms: React Hook Form + Zod
 - UI Components: shadcn/ui + Tailwind
 - Bracket: React Flow en `src/components/bracket/`
+
+### Documentación de cada historia
+- Al terminar una historia se genera un **PDF de decisiones** en `docs/` (escribir el HTML en el
+  scratchpad y renderizarlo con Chrome/Edge `--headless --print-to-pdf`).
+- Si la historia cambia una decisión de diseño vigente, actualizar también la sección de arriba.
 
 ### Base de Datos
 - Tablas: snake_case en plural (e.g. `torneos`, `categorias`)

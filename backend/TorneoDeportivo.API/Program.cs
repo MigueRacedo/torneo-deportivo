@@ -50,15 +50,21 @@ builder.Services.AddCors(options => options.AddDefaultPolicy(policy => policy
 
 var app = builder.Build();
 
-// Aplica migraciones pendientes de la base de datos y siembra los usuarios iniciales (seed).
+// Aplica las migraciones pendientes de la base de datos en todos los entornos.
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<TorneoDbContext>();
     await db.Database.MigrateAsync();
 
-    var usuarios = scope.ServiceProvider.GetRequiredService<IUsuarioRepository>();
-    var passwordHasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
-    await DbSeeder.SeedAsync(usuarios, passwordHasher);
+    // Los usuarios demo tienen contraseñas conocidas y publicadas en la documentación del repo, así que
+    // solo se siembran fuera de produccion. El seeder es idempotente POR EMAIL: sin este guard volveria
+    // a crear las cuentas demo en produccion en cada arranque, incluso despues de que alguien las borre.
+    if (app.Environment.IsDevelopment())
+    {
+        var usuarios = scope.ServiceProvider.GetRequiredService<IUsuarioRepository>();
+        var passwordHasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
+        await DbSeeder.SeedAsync(usuarios, passwordHasher);
+    }
 }
 
 app.UseCors();

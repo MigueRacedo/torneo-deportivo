@@ -7,3 +7,6 @@ dist/
 certs/*.crt
 certs/*.pem
 !certs/.gitkeep
+
+# Documento de trabajo local de cada sesión (el conocimiento durable vive en CLAUDE.md y docs/)
+HANDOFF.md

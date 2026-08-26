@@ -1,68 +1,13 @@
-# HANDOFF — Sistema de Gestión de Torneos de Taekwondo
+# Backlog detallado y deuda técnica
 
-> Documento de traspaso para retomar el trabajo en una sesión nueva.
-> **Última actualización:** 2026-08-20 · Rama de trabajo: `Dev`
+> Especificaciones de las historias pendientes y deuda anotada. Se lee **antes de implementar** una
+> historia, no en cada sesión — por eso vive acá y no en `CLAUDE.md`.
+> La tabla resumen de historias y el modelo de estados están en `CLAUDE.md` (raíz).
 
----
-
-## Estado de verificación E2E
-
-**H0005 está verificado end-to-end** (2026-08-20): se creó un torneo de cero con 4 categorías y 15
-competidores, se generaron llaves y se registraron ganadores desde la UI. Las tres migraciones
-(`CategoriaRangosOpcionales`, `CompetidorSinCategoriaYConSexo`, `CategoriaLlavesGeneradas`) están
-**aplicadas** — `Program.cs` corre `MigrateAsync()` al arrancar.
-
-Docker (`torneo_db` PostgreSQL) suele estar arriba; si no, `docker-compose up -d`.
-
-> ⚠️ Si se toca el backend con la API corriendo bajo el debugger, `dotnet build` falla con
-> **MSB3021/MSB3027** (bloqueo de archivo). No son errores de código: hay que parar el debugger.
-> Para ver solo errores reales: `dotnet build 2>&1 | grep ": error CS"`.
-
----
-
-## Correcciones de H0005 ya aplicadas (2026-08-20)
-
-| # | Problema | Causa real | Fix |
-|---|----------|-----------|-----|
-| 1 | `POST /llaves/generar` devolvía **415** | El endpoint tenía DTO de request; en un POST FastEndpoints exige body JSON, y el cliente no manda `Content-Type` sin body (regla 9) | `GenerarLlavesEndpoint` pasó a `EndpointWithoutRequest` + `Route<Guid>("torneoId")`; se borró `GenerarLlavesRequest` |
-| 2 | Clic en un competidor del bracket no hacía nada | React Flow aplica `pointer-events: none` al nodo cuando `nodesDraggable`, `nodesConnectable` y `elementsSelectable` son `false` y no hay handlers (ver `hasPointerEvents` en su fuente) | `pointer-events-auto` en el div raíz de `MatchNode` |
-| 3 | No había vista de resultado tras generar | — | Nueva vista consolidada `/torneos/:id/llaves` (ver `frontend/CLAUDE.md`) |
-
----
-
-## Estado del proyecto
-
-- **Backend:** compila con 0 errores C# · **90/90 tests** en verde (`cd backend && dotnet test`).
-- **Frontend:** `npm run build` OK (`tsc + vite`) · `npm run lint` sin errores
-  (1 warning preexistente en `CategoriaForm` por `watch()` de React Hook Form).
-
-### Credenciales seed (usuario demo)
-- **Email:** `coordinador@torneo.test` · **Password:** `Coordinador123!` · Rol: Coordinador
-- (Definido en `Infrastructure/Persistence/DbSeeder.cs`.)
-
----
-
-## Historias implementadas
-
-| ID | Título | Estado | Doc |
-|----|--------|--------|-----|
-| H0001 | Crear torneo | ✅ (venía del starter) | — |
-| H0002 | Categorías (CRUD: crear/listar/editar/eliminar) | ✅ | `docs/H0002-definir-categorias.pdf` |
-| H0003 | Editar torneo | ✅ | `docs/H0003-editar-torneo.pdf` |
-| H0004 | Cargar competidores | ✅ | `docs/H0004-cargar-competidores.pdf` |
-| H0005 | **Generar llaves** ⭐ | ✅ verificado E2E | `docs/H0005-generar-llaves.pdf` |
-
-**Bloque CRUD extra** (pedido por el usuario, antes de H0005): editar competidor, eliminar competidor,
-eliminar categoría, eliminar torneo (solo Borrador). Todo con **borrado físico + guards por estado + confirmación**.
-Documentado en `docs/CRUD-extra-edicion-y-borrado.pdf`.
-
----
-
-## Pendiente (próximas historias)
+## Historias pendientes
 
 | ID | Título | Épica | Puntos | Rol |
 |----|--------|-------|--------|-----|
-| H0006 | Ver categorías (Profesor) | Consulta Profesor | 1 | Profesor |
 | H0007 | Ver competidores (Profesor) | Consulta Profesor | 2 | Profesor |
 | H0008 | Generar reporte PDF | Reportes Director | 8 | Director |
 | H0009 | **Ciclo de vida del torneo** | Gestión del torneo | 8 | Coordinador |
@@ -178,112 +123,7 @@ varias (Combate + Formas). El resto de la tabla no se ve afectado.
 
 ---
 
-## Decisiones de diseño importantes (contexto que no está en el código)
-
-1. **Competidor desacoplado de categoría.** El competidor se carga **sin categoría** (`categoria_id` nullable)
-   y se le agregó **`sexo`**. La relación competidor↔categoría se resuelve al **generar llaves (H0005)**,
-   clasificándolo por atributos (sexo/edad/peso/graduación) contra los rangos. Fue una decisión del usuario
-   (evita elegir categoría a mano sin validar el encaje).
-
-2. **Clasificación first-fit.** Al generar, cada competidor sin categoría va a la **primera categoría que encaja**.
-   Un competidor puede encajar en varias (rangos solapados, o Combate+Formas). Se ajusta editando categorías/competidores
-   **antes** de generar. → **Queda derogada por H0011**, que pasa la relación a N—N y permite doble participación.
-
-3. **Borrado físico + guards por estado** (no soft-delete):
-   - Eliminar torneo: **solo en Borrador**.
-   - Eliminar/editar competidor y categoría: torneo **no Finalizado**.
-   - Categoría con **llaves generadas**: bloqueada para editar/eliminar (guard backend + oculto en UI).
-   - FKs: torneo→categorías/competidores/llaves en **CASCADE**; categoría→competidores en **SET NULL**.
-
-4. **No regenerar llaves** (regla del skill). Una categoría con `LlavesGeneradas=true` no se regenera.
-   Hoy **no hay "borrar llaves"** → si la clasificación quedó mal, no se puede rehacer.
-   → **Lo resuelve H0010**, que además obliga a reescribir esa regla del skill.
-
-5. **Transición de estados del torneo NO existe todavía.** Todos los torneos quedan en `Borrador`
-   (no hay endpoint para pasar a Activo/Finalizado). Por eso los guards de "Finalizado" son **latentes**
-   (correctos pero inalcanzables hoy). Generar llaves **no** cambia el estado. → **Lo resuelve H0009.**
-
-7. **Dos vistas de llaves, a propósito** (decisión del usuario, 2026-08-20):
-   - **Unitaria** `/torneos/:id/categorias/:catId/llaves` — un bracket solo, para operar concentrado.
-   - **Consolidada** `/torneos/:id/llaves?categoria=<id>` — todas las categorías + las que quedaron sin
-     llaves con su motivo + los competidores sin categoría.
-   Ambas montan el mismo `BracketPanel`, así que no hay lógica duplicada. Se navega de una a la otra en
-   los dos sentidos. **No unificarlas**: sirven a usos distintos (operar vs. auditar).
-
-6. **Bug ya resuelto (no reintroducir):** el fetch wrapper (`frontend/src/lib/api.ts`) solo manda
-   `Content-Type: application/json` **cuando hay body** (un GET/DELETE con ese header rompe FastEndpoints con
-   "One or more errors occurred!"). Y parsea los errores con `extraerMensajeError` (FastEndpoints devuelve
-   `errors` como **objeto** `{campo:[msg]}`, no array). Ver reglas 9-10 de `frontend/CLAUDE.md`.
-
 ---
-
-## Convenciones del proyecto (respetarlas)
-
-- **Backend:** Clean Architecture + CQRS (MediatR), **FastEndpoints** (no Controllers), **Mapster** (`.Adapt<T>()`),
-  **FluentValidation**, EF Core + Npgsql. Excepciones tipadas: `NotFoundException` (404), `ConflictException` (409).
-- **Comentarios XML `/// <summary>`** en español en toda clase/interfaz/método público nuevo (ver `backend/CLAUDE.md`).
-- **Reglas compartidas de validación** vía interfaz + extension method: `ICategoriaData`/`CategoriaValidationRules`
-  y `ICompetidorData`/`CompetidorValidationRules` (evita duplicar entre Command y Request validators).
-- **Frontend:** React 19 + Vite + TS. Server state **solo** en TanStack Query (query keys centralizadas por entidad,
-  mutaciones invalidan en `onSuccess`). React Hook Form + Zod. Rutas protegidas con `RoleGuard`.
-- **Componente reutilizable `ConfirmDialog`** (`components/ui/confirm-dialog.tsx`, Base UI AlertDialog) para todo
-  borrado. Los botones "Eliminar" van **atenuados (`text-muted-foreground`) en reposo → rojo en hover/focus**
-  (regla 60-30-10: rojo solo para CTAs).
-- **UX/accesibilidad (WCAG 2.2 AA) obligatorio** — ver `skills/ux-ui-guidelines.md`. Targets ≥44px, `<Label>` visible,
-  focus visible, errores accionables, HTML semántico, headings sin saltos.
-- **Cada historia:** al terminar, se genera un **PDF de decisiones** en `docs/` (se hace con Chrome/Edge headless:
-  escribir HTML en scratchpad → `--headless --print-to-pdf`).
-
----
-
-## Skills a leer según el área (obligatorio antes de tocar)
-
-- `skills/bracket-algorithm.md` — algoritmo de llaves (H0005).
-- `skills/react-flow-bracket.md` — visualización del bracket.
-- `skills/database-schema.md` — schema de BD (⚠️ ya actualizado con competidor sexo/categoría nullable).
-- `skills/ux-ui-guidelines.md` — **obligatorio** antes de tocar cualquier componente visual.
-- `skills/api-patterns.md` — patrones de API.
-- `CLAUDE.md` (raíz), `backend/CLAUDE.md`, `frontend/CLAUDE.md`.
-
----
-
-## Arquitectura de H0005 (por si se retoma el bracket)
-
-- **Algoritmo:** `Application/Features/Llaves/BracketGeneratorService.cs` (función pura, 10 tests obligatorios ✅).
-- **Clasificador:** `Application/Features/Llaves/ClasificadorCompetidores.cs` (`Encaja(competidor, categoria)`).
-- **Casos de uso:** `Features/Llaves/Commands/{GenerarLlaves,RegistrarGanador}` y `Queries/GetBracket`.
-- **Endpoints:** `API/Endpoints/Llaves/` (generar POST, ver GET, ganador PUT).
-- **SignalR:** `IBracketNotifier` (Application) ← `SignalRBracketNotifier` (API, usa `BracketHub`).
-  Evento `MatchActualizado` al grupo `torneo-{id}`. Registrado en `Program.cs`.
-- **Frontend:** `components/bracket/` (bracketLayout, MatchNode, BracketView, **BracketPanel**,
-  **CategoriaLlaveNav**, **CompetidoresSinCategoria**, GenerarLlavesButton), `hooks/useBracket.ts`,
-  `lib/signalr.ts`, y **dos rutas**: `routes/torneos/$torneoId/llaves.tsx` (consolidada) y
-  `routes/torneos/$torneoId/categorias/$categoriaId/llaves.tsx` (unitaria).
-- `BracketPanel` concentra la lógica de registrar ganador y lo montan **ambas** rutas: si cambia el flujo
-  del ganador, se toca un solo archivo.
-- La suscripción SignalR vive en `useBracketLiveUpdates(torneoId)` e invalida con `bracketKeys.byTorneo`
-  (no `detail`): el evento es de alcance torneo y la conexión no debe reabrirse al cambiar de categoría.
-
----
-
-## Cómo correr
-
-```bash
-# Infra (PostgreSQL, Redis, MinIO)
-docker-compose up -d
-
-# Backend  (aplica migraciones al arrancar)
-cd backend && dotnet run          # http://localhost:5000
-
-# Frontend
-cd frontend && npm run dev        # http://localhost:5173
-
-# Tests backend
-cd backend && dotnet test
-
-# Ver solo errores reales de compilación (ignorando bloqueos por API corriendo)
-cd backend && dotnet build 2>&1 | grep ": error CS"
-```
 
 ## Cómo verificar H0005 end-to-end
 
@@ -310,11 +150,10 @@ curl -s http://localhost:5000/api/v1/torneos -H "Authorization: Bearer $TOKEN"
 
 ---
 
-## Follow-ups anotados (deuda técnica / mejoras)
+## Deuda técnica anotada
 
 > Los tres follow-ups grandes que estaban acá (borrar/regenerar llaves, transición de estados y
-> multi-categoría) **se promovieron a historias**: H0010, H0009 y H0011 respectivamente. Ver
-> §"Pendiente (próximas historias)".
+> multi-categoría) **se promovieron a historias**: H0010, H0009 y H0011 respectivamente (ver arriba).
 
 Queda como deuda suelta:
 
