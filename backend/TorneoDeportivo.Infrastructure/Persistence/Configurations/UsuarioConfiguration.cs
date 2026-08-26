@@ -19,6 +19,8 @@ public class UsuarioConfiguration : IEntityTypeConfiguration<Usuario>
         builder.Property(u => u.Email).IsRequired().HasMaxLength(200);
         builder.Property(u => u.PasswordHash).IsRequired();
         builder.Property(u => u.Rol).HasConversion<string>();
+        // Misma longitud que Competidor.Escuela: se comparan por igualdad al filtrar los alumnos.
+        builder.Property(u => u.Escuela).HasMaxLength(200);
         builder.HasIndex(u => u.Email).IsUnique();
     }
 }

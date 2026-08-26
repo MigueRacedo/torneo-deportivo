@@ -20,6 +20,7 @@ const ESTADO_CLASES: Record<TorneoEstado, string> = {
 
 export function TorneoCard({ torneo }: { torneo: Torneo }) {
   const esCoordinador = useAuthStore((state) => state.usuario?.rol === 'Coordinador');
+  const esProfesor = useAuthStore((state) => state.usuario?.rol === 'Profesor');
   const puedeEditar = esCoordinador && torneo.estado !== 'Finalizado';
   const puedeEliminar = esCoordinador && torneo.estado === 'Borrador';
   const eliminar = useEliminarTorneo();
@@ -60,6 +61,14 @@ export function TorneoCard({ torneo }: { torneo: Torneo }) {
             className="inline-flex min-h-11 items-center text-sm leading-relaxed font-medium text-secondary underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-3 focus-visible:outline-secondary"
           >
             Competidores →
+          </Link>
+        )}
+        {esProfesor && (
+          <Link
+            to={`/torneos/${torneo.id}/mis-alumnos`}
+            className="inline-flex min-h-11 items-center text-sm leading-relaxed font-medium text-secondary underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-3 focus-visible:outline-secondary"
+          >
+            Mis alumnos →
           </Link>
         )}
         {puedeEditar && (

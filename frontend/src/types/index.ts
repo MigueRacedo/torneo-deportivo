@@ -128,6 +128,16 @@ export interface CreateCompetidorInput {
 
 export type UpdateCompetidorInput = CreateCompetidorInput;
 
+/**
+ * Alumnos del Profesor autenticado en un torneo (H0007).
+ * `escuela` en null significa que el usuario todavía no tiene escuela asignada — distinto de
+ * "la escuela no tiene inscriptos", que es escuela con nombre y lista vacía.
+ */
+export interface MisCompetidores {
+  escuela: string | null;
+  competidores: Competidor[];
+}
+
 // ── Llaves / Bracket (H0005) ──────────────────────────────────────────────
 export type EstadoLlave = 'Pendiente' | 'EnCurso' | 'Finalizado' | 'Bye';
 

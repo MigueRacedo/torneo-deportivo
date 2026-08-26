@@ -6,6 +6,7 @@ import CategoriasPage from '@/routes/torneos/$torneoId/categorias';
 import EditarCategoriaPage from '@/routes/torneos/$torneoId/categorias/$categoriaId/editar';
 import LlavesCategoriaPage from '@/routes/torneos/$torneoId/categorias/$categoriaId/llaves';
 import LlavesTorneoPage from '@/routes/torneos/$torneoId/llaves';
+import MisAlumnosPage from '@/routes/torneos/$torneoId/mis-alumnos';
 import CompetidoresPage from '@/routes/torneos/$torneoId/competidores';
 import EditarCompetidorPage from '@/routes/torneos/$torneoId/competidores/$competidorId/editar';
 import EditarTorneoPage from '@/routes/torneos/$torneoId/editar';
@@ -85,6 +86,15 @@ function App() {
                   element={
                     <RoleGuard roles={['Coordinador']}>
                       <EditarCompetidorPage />
+                    </RoleGuard>
+                  }
+                />
+                {/* Vista del Profesor: sus alumnos. La escuela la resuelve el backend desde el token. */}
+                <Route
+                  path="/torneos/:torneoId/mis-alumnos"
+                  element={
+                    <RoleGuard roles={['Profesor']}>
+                      <MisAlumnosPage />
                     </RoleGuard>
                   }
                 />

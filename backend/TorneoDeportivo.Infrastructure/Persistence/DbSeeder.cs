@@ -10,12 +10,12 @@ namespace TorneoDeportivo.Infrastructure.Persistence;
 public static class DbSeeder
 {
     /// <summary>Usuario demo a sembrar: credenciales y rol.</summary>
-    private record UsuarioSemilla(string Nombre, string Email, string Password, RolUsuario Rol);
+    private record UsuarioSemilla(string Nombre, string Email, string Password, RolUsuario Rol, string? Escuela = null);
 
     private static readonly UsuarioSemilla[] Semillas =
     [
         new("Coordinador Demo", "coordinador@torneo.test", "Coordinador123!", RolUsuario.Coordinador),
-        new("Profesor Demo", "profesor@torneo.test", "Profesor123!", RolUsuario.Profesor),
+        new("Profesor Demo", "profesor@torneo.test", "Profesor123!", RolUsuario.Profesor, "Escuela Central"),
     ];
 
     /// <summary>
@@ -40,7 +40,8 @@ public static class DbSeeder
                 Nombre = semilla.Nombre,
                 Email = semilla.Email,
                 PasswordHash = passwordHasher.Hash(semilla.Password),
-                Rol = semilla.Rol
+                Rol = semilla.Rol,
+                Escuela = semilla.Escuela
             }, ct);
         }
     }

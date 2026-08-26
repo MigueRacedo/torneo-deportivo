@@ -7,6 +7,9 @@ namespace TorneoDeportivo.Domain.Interfaces;
 /// </summary>
 public interface IUsuarioRepository
 {
+    /// <summary>Busca un usuario por su id; devuelve null si no existe.</summary>
+    Task<Usuario?> GetByIdAsync(Guid id, CancellationToken ct);
+
     /// <summary>Busca un usuario por su email; devuelve null si no existe.</summary>
     Task<Usuario?> GetByEmailAsync(string email, CancellationToken ct);
 

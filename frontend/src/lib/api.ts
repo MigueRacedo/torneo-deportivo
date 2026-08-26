@@ -9,6 +9,7 @@ import type {
   GenerarLlavesResponse,
   LoginInput,
   LoginResult,
+  MisCompetidores,
   Match,
   Torneo,
   UpdateCompetidorInput,
@@ -108,6 +109,9 @@ export const api = {
   competidores: {
     listar: (torneoId: string) =>
       apiFetch<Competidor[]>(`/api/v1/torneos/${torneoId}/competidores`),
+    // Alumnos del Profesor autenticado: la escuela la resuelve el backend desde el token (H0007).
+    misAlumnos: (torneoId: string) =>
+      apiFetch<MisCompetidores>(`/api/v1/torneos/${torneoId}/competidores/mis-alumnos`),
     cargar: (torneoId: string, data: CreateCompetidorInput) =>
       apiFetch<Competidor>(`/api/v1/torneos/${torneoId}/competidores`, {
         method: 'POST',

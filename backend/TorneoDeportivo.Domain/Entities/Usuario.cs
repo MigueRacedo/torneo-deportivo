@@ -13,6 +13,12 @@ public class Usuario
     public string Email { get; set; } = string.Empty;
     public string PasswordHash { get; set; } = string.Empty;
     public RolUsuario Rol { get; set; }
+
+    /// <summary>
+    /// Escuela a la que pertenece el usuario. Solo aplica al rol Profesor, que consulta a sus propios
+    /// alumnos (H0007); en Coordinador y Director queda en null.
+    /// </summary>
+    public string? Escuela { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 }

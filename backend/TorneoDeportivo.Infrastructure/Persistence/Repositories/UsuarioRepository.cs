@@ -9,6 +9,10 @@ namespace TorneoDeportivo.Infrastructure.Persistence.Repositories;
 /// </summary>
 public class UsuarioRepository(TorneoDbContext db) : IUsuarioRepository
 {
+    /// <summary>Busca un usuario por su id; devuelve null si no existe.</summary>
+    public Task<Usuario?> GetByIdAsync(Guid id, CancellationToken ct) =>
+        db.Usuarios.FirstOrDefaultAsync(u => u.Id == id, ct);
+
     /// <summary>Busca un usuario por su email; devuelve null si no existe.</summary>
     public Task<Usuario?> GetByEmailAsync(string email, CancellationToken ct) =>
         db.Usuarios.FirstOrDefaultAsync(u => u.Email == email, ct);

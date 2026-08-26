@@ -6,7 +6,23 @@ import type { CreateCompetidorInput, UpdateCompetidorInput } from '@/types';
 export const competidorKeys = {
   all: ['competidores'] as const,
   byTorneo: (torneoId: string) => ['competidores', torneoId] as const,
+  // Es hijo de byTorneo: invalidar el listado del torneo tras una mutación también refresca esta vista.
+  misAlumnos: (torneoId: string) => ['competidores', torneoId, 'mis-alumnos'] as const,
 };
+
+/**
+ * Alumnos del Profesor autenticado en un torneo (H0007).
+ *
+ * A diferencia de `useCompetidores`, este endpoint SÍ está abierto al Profesor: devuelve únicamente los
+ * competidores de su propia escuela, resuelta server-side desde el token.
+ */
+export function useMisCompetidores(torneoId: string) {
+  return useQuery({
+    queryKey: competidorKeys.misAlumnos(torneoId),
+    queryFn: () => api.competidores.misAlumnos(torneoId),
+    enabled: Boolean(torneoId),
+  });
+}
 
 /**
  * Lista los competidores de un torneo (server state en TanStack Query).
