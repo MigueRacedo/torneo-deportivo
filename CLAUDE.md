@@ -111,23 +111,47 @@ Torneo → Categorías → Competidores → Llaves (Bracket)
 > hecho entre H0004 y H0005, que no es una historia del backlog.
 > Documentado en `docs/CRUD-extra-edicion-y-borrado.pdf`.
 
-### Orden recomendado de las historias nuevas
-**H0009 → H0010 → H0012 → H0011.** No es el orden en que surgieron, sino el de sus dependencias:
+### Orden recomendado de implementación
 
-- **H0009 primero** porque define *cuándo* algo se puede modificar. Sin estados, "editar una categoría
-  con llaves generadas" (H0010) no tiene una respuesta segura: mientras el torneo se planifica es
-  deseable, mientras se compite es corrupción de datos. H0009 es lo que traza esa línea.
-- **H0010 después** porque es el bucle de corrección: sin poder deshacer una generación, un error de
-  clasificación es permanente.
-- **H0012 se apoya en H0010** (crear una categoría a medida implica rehacer la generación).
-- **H0011 al final** porque es el único que cambia el modelo de datos (competidor ↔ categoría pasa de
-  1—N a N—N) y toca clasificador, brackets, reportes y toda la UI. Hacerlo antes obligaría a rehacerlo
-  encima de cada historia anterior.
-- **H0013 y el bloque de datos maestros (H0014–H0016) son independientes** de las otras cuatro: no
-  comparten código con ellas y se pueden intercalar en cualquier momento.
-  - H0013: su columna/filtro de "Categoría" se rehace con H0011 (una categoría pasa a ser varias).
-  - H0014–H0016: conviene **no solaparlos con H0011**, porque ambos migran `competidores` y cada
-    migración debería poder revisarse por separado.
+Quedan **9 historias / 60 puntos**. El orden no es el de numeración sino el de dependencias y costo de
+retrabajo:
+
+| # | Historia | Pts | Por qué en esa posición |
+|---|----------|-----|-------------------------|
+| 1 | H0009 Ciclo de vida del torneo | 8 | Define *cuándo* se puede modificar cada cosa |
+| 2 | H0010 Rehacer llaves | 5 | El bucle de corrección: sin él, un error de clasificación es permanente |
+| 3 | H0012 Categoría desierta | 3 | Se apoya en H0010 (crear la categoría implica regenerar) |
+| 4 | H0014 Catálogo de escuelas | 8 | Antes de acumular datos reales en texto libre |
+| 5 | H0015 Gestión de usuarios | 5 | Saca la dependencia del `DbSeeder` para crear Profesores |
+| 6 | H0016 Profesor por FK | 5 | Necesita H0014 y H0015 |
+| 7 | H0008 Reporte PDF | 8 | Después de H0014: agrupar por escuela deja de ser texto libre |
+| 8 | H0011 Doble participación | 13 | Cambio de modelo grande: hacerlo una sola vez, al final |
+| 9 | H0013 Tablas filtrables | 5 | Su columna/filtro de "Categoría" se rehace con H0011 |
+
+**Las tres razones de fondo:**
+
+1. **La cadena de llaves (1–3) antes que la de datos maestros (4–6).** Las dos empiezan con historias
+   Básico, pero la de llaves es la que bloquea el uso real: sin H0010, un error de clasificación no tiene
+   salida. Además H0009 vuelve alcanzables los guards de "Finalizado", que hoy son código correcto,
+   testeado y que nunca se ejecuta. El argumento de que el backfill de H0014 se encarece con el tiempo es
+   cierto pero todavía no aplica: recién pesa cuando se carguen torneos reales.
+2. **H0014 antes que H0008.** El reporte del Director agrupa por escuela, y sobre texto libre devuelve
+   varias filas para la misma escuela. Sanear el dato antes de construir el reporte es más barato que
+   corregir el reporte después.
+3. **H0011 anteúltima.** Es la única que cambia el modelo de datos (competidor ↔ categoría pasa a N—N) y
+   toca clasificador, brackets, reportes y toda la UI. Cada historia hecha antes es una que no se rehace
+   encima.
+
+**Si solo se hacen tres más:** H0009 → H0010 → H0014 (21 pts). Deja el torneo operable de punta a punta
+—con forma de corregir una clasificación equivocada— y los datos sanos antes de que se acumulen.
+
+⚠️ **Punto discutible del orden:** poner H0008 antes de H0011 implica retocar el reporte después, porque
+con N—N un competidor cuenta en dos categorías y los totales agregados se recalculan. Se priorizó igual
+porque la épica del Director está vacía y el retrabajo se limita a los conteos, no a la estructura del
+reporte (que es por categoría, y cada bracket no cambia). Para cero retrabajo, mover H0008 después de H0011.
+
+⚠️ **No solapar H0011 con H0014–H0016:** las dos cadenas migran `competidores`, y cada migración debería
+poder revisarse por separado.
 
 ## Ciclo de vida del torneo (H0009)
 

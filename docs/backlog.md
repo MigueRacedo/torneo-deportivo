@@ -18,10 +18,12 @@
 
 - H0008: usar **QuestPDF** (ya está la licencia Community configurada en `Infrastructure/DependencyInjection.cs`).
 
-### Orden recomendado: H0009 → H0010 → H0012 → H0011 (H0013 en cualquier momento)
+### Orden de implementación
 
-No es el orden en que surgieron sino el de sus dependencias. Ver el detalle del razonamiento y el modelo
-de estados en `CLAUDE.md` (raíz), sección **"Ciclo de vida del torneo (H0009)"**.
+**H0009 → H0010 → H0012 → H0014 → H0015 → H0016 → H0008 → H0011 → H0013.**
+
+El razonamiento completo (dependencias, costo de retrabajo y los puntos discutibles) está en `CLAUDE.md`
+(raíz), sección **"Orden recomendado de implementación"**. Acá abajo va el detalle de cada historia.
 
 ---
 
@@ -217,13 +219,14 @@ variantes de texto por normalizar, dentro de unos meses es limpieza de datos a m
 ### Dónde encaja este bloque en el orden general
 
 Es **ortogonal** a H0009–H0012 (ciclo de vida y llaves): toca columnas distintas de `competidores` y no
-comparte código con el clasificador ni con el bracket. Se puede intercalar.
+comparte código con el clasificador ni con el bracket.
 
-Dos consideraciones de prioridad:
-- **A favor de hacerlo pronto:** el backfill de H0014 se encarece con cada torneo que se cargue con texto
-  libre, y H0008 (reportes del Director) va a querer agrupar por escuela de forma confiable.
-- **A favor de esperar:** H0011 también migra `competidores` (relación N—N con categorías). Si se hacen
-  cerca en el tiempo, conviene no solaparlos para que cada migración sea revisable por separado.
+En el orden acordado va en las **posiciones 4 a 6**, después de la cadena de llaves y antes de H0008:
+
+- El backfill de H0014 se encarece con cada torneo que se cargue con texto libre.
+- H0008 (reportes del Director) necesita agrupar por escuela de forma confiable, así que va después.
+- ⚠️ No solaparlo con **H0011**, que también migra `competidores`: cada migración debería poder
+  revisarse por separado.
 
 ### Deuda que este bloque absorbe (de H0007)
 
